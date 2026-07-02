@@ -1,0 +1,54 @@
+{
+  "name": "react-generative-ui",
+  "version": "0.1.0",
+  "description": "A plug-and-play React library for rendering AI-generated structured UI components from LLM JSON output.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "dev": "cd example && npm run dev",
+    "lint": "eslint src --ext ts,tsx",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "generative-ui",
+    "ai",
+    "llm",
+    "dynamic-components",
+    "openai",
+    "groq",
+    "component-renderer"
+  ],
+  "author": "Hema Surya",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/hemasurya106/react-generative-ui"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>react-generative-ui — Component Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080810;--s1:#0f0f1a;--s2:#141428;--border:#1e1e35;--border2:#2a2a45;
+      --text:#e2e8f0;--dim:#94a3b8;--muted:#64748b;
+      --indigo:#6366f1;--cyan:#22d3ee;--emerald:#10b981;--amber:#f59e0b;--rose:#ef4444;--violet:#8b5cf6;--pink:#ec4899;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 15% 5%,rgba(99,102,241,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 90%,rgba(16,185,129,.04) 0%,transparent 55%);pointer-events:none;z-index:0}
+
+    /* Layout */
+    .wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 1.5rem 6rem}
+
+    /* Header */
+    .hero{text-align:center;padding:4rem 0 2rem}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:1.25rem}
+    .hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;background:linear-gradient(135deg,#f1f5f9 0%,#818cf8 55%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:.75rem}
+    .hero p{color:var(--dim);font-size:1rem;max-width:550px;margin:0 auto;line-height:1.7}
+
+    /* Nav pills */
+    .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:2rem 0 3rem;padding:0}
+    .nav a{padding:5px 13px;border-radius:999px;font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--s1);border:1px solid var(--border);color:var(--muted);text-decoration:none;transition:all .15s}
+    .nav a:hover{border-color:var(--indigo);color:#818cf8;background:rgba(99,102,241,.08)}
+
+    /* Section label */
+    .sec-label{display:flex;align-items:center;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--indigo);text-transform:uppercase;letter-spacing:.15em;margin-bottom:1.25rem;margin-top:3.5rem}
+    .sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+    .sec-label span{font-size:15px}
+
+    /* Component name badge */
+    .comp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:5px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:10px;font-family:'JetBrains Mono',monospace;margin-bottom:.75rem}
+
+    /* ─── COMPONENT IMPLEMENTATIONS ─────────────────────────────────────────── */
+
+    /* ── AlertBox ── */
+    .alert-box{border-radius:14px;padding:1.1rem 1.25rem;display:flex;gap:14px;margin-bottom:.75rem;transition:transform .2s}
+    .alert-box:hover{transform:scale(1.005)}
+    .alert-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+    .alert-type{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+    .alert-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+    .alert-body{font-size:13px;color:var(--dim);line-height:1.6}
+
+    /* ── StatCard ── */
+    .stat-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:linear-gradient(135deg,#111118,#0d0d14);margin-bottom:.75rem}
+    .stat-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
+    .stat-dot{width:6px;height:6px;border-radius:50%;background:var(--indigo);animation:pulse2 2s infinite}
+    .stat-header-label{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .stat-grid{display:grid;gap:1px;background:rgba(255,255,255,.03)}
+    .stat-cell{background:#111118;padding:18px 20px;transition:background .15s}
+    .stat-cell:hover{background:#16161f}
+    .stat-value-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:4px}
+    .stat-val{font-size:2rem;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;line-height:1}
+    .stat-unit{font-size:12px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:3px}
+    .stat-trend{margin-bottom:3px;margin-left:auto;font-size:14px}
+    .stat-label-text{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .stat-detail{font-size:11px;color:#3f3f5a;margin-top:4px;font-family:'JetBrains Mono',monospace}
+
+    /* ── ProConTable ── */
+    .procon-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .procon-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .procon-grid{display:grid;grid-template-columns:1fr 1fr}
+    .procon-side{padding:18px 20px}
+    .procon-side:first-child{border-right:1px solid rgba(255,255,255,.05)}
+    .procon-side-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;margin-bottom:14px}
+    .procon-list{list-style:none}
+    .procon-item{display:flex;align-items:flex-start;gap:9px;padding:5px 0;font-size:13px;color:var(--dim);line-height:1.5}
+    .procon-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
+
+    /* ── ModelLeaderboard ── */
+    .lb-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .lb-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between}
+    .lb-header-left{display:flex;align-items:center;gap:8px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .lb-bench{font-size:11px;color:#3f3f5a;font-family:'JetBrains Mono',monospace}
+    .lb-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .15s}
+    .lb-row:last-child{border-bottom:none}
+    .lb-row:hover{background:rgba(255,255,255,.015)}
+    .lb-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+    .lb-info{flex:1;min-width:0}
+    .lb-name-row{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+    .lb-name{font-size:13px;font-weight:700;color:var(--text)}
+    .lb-version{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+    .lb-new{font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+    .lb-maker{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+    .lb-bar-wrap{width:100px;flex-shrink:0}
+    .lb-bar-track{height:6px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden}
+    .lb-bar-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+    .lb-score{text-align:right;flex-shrink:0;min-width:40px}
+    .lb-score-val{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace}
+    .lb-score-sub{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+    .lb-detail{padding:14px 20px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.04);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .lb-cap{display:flex;flex-direction:column;gap:4px}
+    .lb-cap-label{display:flex;justify-content:space-between;font-size:11px}
+    .lb-cap-track{height:5px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden}
+
+    /* ── Timeline ── */
+    .tl-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .tl-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--indigo)}
+    .tl-body{padding:24px 20px;display:flex;flex-direction:column;gap:0}
+    .tl-item{display:flex;gap:16px}
+    .tl-spine{display:flex;flex-direction:column;align-items:center}
+    .tl-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;border:2px solid}
+    .tl-line{width:2px;flex:1;min-height:20px;margin:4px 0;background:rgba(255,255,255,.06)}
+    .tl-line.done{background:rgba(16,185,129,.3)}
+    .tl-content{flex:1;padding-bottom:20px}
+    .tl-date{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:2px}
+    .tl-tag{display:inline-block;font-size:9px;padding:1px 7px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--indigo);border:1px solid rgba(99,102,241,.2);font-family:'JetBrains Mono',monospace;margin-left:6px}
+    .tl-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
+    .tl-desc{font-size:12px;color:var(--muted);line-height:1.6}
+
+    /* ── KeyPlayers ── */
+    .kp-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .kp-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .kp-count{margin-left:auto;color:#3f3f5a}
+    .kp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px}
+    .kp-card{border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.01);cursor:pointer;transition:all .2s;text-align:left}
+    .kp-card:hover{background:rgba(255,255,255,.03)}
+    .kp-card.active{box-shadow:0 0 20px rgba(99,102,241,.2)}
+    .kp-logo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px;border:1px solid}
+    .kp-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .kp-role{font-size:9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+    .kp-metric{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace}
+    .kp-metric-label{font-size:9px;color:var(--muted);margin-left:3px}
+    .kp-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)}
+
+    /* ── CodeSnippet ── */
+    .code-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#060610;margin-bottom:.75rem}
+    .code-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#0f0f1a;border-bottom:1px solid rgba(255,255,255,.05)}
+    .code-dots-row{display:flex;gap:5px}
+    .code-dot{width:10px;height:10px;border-radius:50%}
+    .code-tabs{display:flex;gap:0;flex:1;margin-left:10px}
+    .code-tab{padding:6px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+    .code-tab.active{color:var(--text);border-bottom-color:var(--indigo)}
+    .code-lang-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;font-weight:700}
+    .code-copy{font-size:11px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;font-family:inherit;transition:all .15s}
+    .code-copy:hover{color:var(--text);border-color:var(--border2)}
+    .code-pre{padding:1.25rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;overflow-x:auto}
+    .code-line{display:flex}
+    .code-ln{width:28px;text-align:right;color:#3f3f5a;font-size:11px;flex-shrink:0;margin-right:16px;line-height:1.8;user-select:none}
+    .code-text{color:#c9d1d9;white-space:pre}
+    .code-line.hl{background:rgba(99,102,241,.06);border-radius:4px;margin:0 -8px;padding:0 8px}
+    /* syntax */
+    .kw{color:#ff7b72}.fn2{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#6e7681;font-style:italic}.ty{color:#ffa657}.jsx{color:#7ee787}.prop{color:#e6c07b}.num{color:#f78166}.op{color:#79c0ff}
+
+    /* ── ComparisonBar ── */
+    .cmp-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .cmp-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between}
+    .cmp-title{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .cmp-legend{display:flex;gap:14px}
+    .cmp-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+    .cmp-legend-dot{width:7px;height:7px;border-radius:50%}
+    .cmp-body{padding:20px}
+    .cmp-row{margin-bottom:18px}
+    .cmp-row:last-child{margin-bottom:0}
+    .cmp-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .cmp-row-label{font-size:13px;font-weight:500;color:var(--text)}
+    .cmp-row-vals{display:flex;align-items:center;gap:8px;font-size:11px;font-family:'JetBrains Mono',monospace}
+    .cmp-vs{color:#3f3f5a}
+    .cmp-bar-track{height:7px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden;margin-bottom:5px}
+    .cmp-bar-fill{height:100%;border-radius:999px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+    /* ── FAQAccordion ── */
+    .faq-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .faq-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .faq-item{border-bottom:1px solid rgba(255,255,255,.04)}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 20px;text-align:left;background:transparent;border:none;cursor:pointer;color:var(--text);font-family:inherit;transition:background .15s}
+    .faq-q:hover{background:rgba(255,255,255,.02)}
+    .faq-q-text{font-size:13px;font-weight:500}
+    .faq-q-text.open{color:var(--indigo)}
+    .faq-chevron{font-size:14px;color:var(--muted);transition:transform .3s;flex-shrink:0}
+    .faq-chevron.open{transform:rotate(180deg)}
+    .faq-body{overflow:hidden;max-height:0;transition:max-height .3s ease}
+    .faq-body.open{max-height:300px}
+    .faq-ans{padding:0 20px 18px;padding-left:36px;border-left:0}
+    .faq-ans-inner{padding-left:16px;border-left:2px solid rgba(99,102,241,.3);font-size:13px;color:var(--dim);line-height:1.7}
+
+    /* ── TrendLine (SVG) ── */
+    .trend-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .trend-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between}
+    .trend-title{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .trend-hover-val{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+    .trend-svg-wrap{padding:10px 12px 6px}
+
+    /* ── PipelineDiagram ── */
+    .pipe-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .pipe-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .pipe-body{padding:20px;display:flex;align-items:flex-start;gap:0;overflow-x:auto}
+    .pipe-step{flex-shrink:0;display:flex;flex-direction:column;align-items:center;text-align:center;cursor:pointer}
+    .pipe-node{width:64px;height:64px;border-radius:16px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;font-size:26px;transition:all .2s;position:relative}
+    .pipe-node:hover,.pipe-node.active{border-color:var(--indigo);background:rgba(99,102,241,.1);box-shadow:0 0 20px rgba(99,102,241,.25)}
+    .pipe-status-dot{position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--emerald);border:2px solid #111118;animation:pulse2 2s infinite}
+    .pipe-step-label{font-size:11px;font-weight:700;color:var(--text);margin-top:10px;max-width:80px;line-height:1.3}
+    .pipe-step-dur{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--indigo);margin-top:3px}
+    .pipe-arrow{display:flex;align-items:center;height:64px;padding:0 8px;flex-shrink:0}
+    .pipe-arrow-inner{display:flex;align-items:center;gap:0}
+    .pipe-arrow-line{width:24px;height:1px;background:linear-gradient(90deg,rgba(99,102,241,.4),rgba(99,102,241,.8))}
+    .pipe-arrow-head{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:5px solid rgba(99,102,241,.8)}
+    .pipe-desc-box{margin:0 20px 16px;padding:12px 14px;border-radius:10px;font-size:12px;color:var(--dim);line-height:1.6;border:1px solid rgba(99,102,241,.2);background:rgba(99,102,241,.06)}
+    .pipe-desc-bold{font-weight:600;color:var(--indigo)}
+
+    /* ── MissionCard ── */
+    .mc-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(34,211,238,.18);background:linear-gradient(135deg,#111118,#0d0d14);margin-bottom:.75rem}
+    .mc-header{position:relative;padding:20px;border-bottom:1px solid rgba(34,211,238,.08);overflow:hidden}
+    .mc-stars{position:absolute;inset:0;pointer-events:none}
+    .mc-star{position:absolute;width:2px;height:2px;border-radius:50%;background:white;opacity:.4}
+    .mc-header-inner{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+    .mc-icon-box{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;border:1px solid rgba(34,211,238,.25);background:rgba(34,211,238,.1);flex-shrink:0}
+    .mc-agency{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--cyan);margin-bottom:4px}
+    .mc-name{font-size:18px;font-weight:800;color:var(--text)}
+    .mc-dest{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:5px}
+    .mc-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+    .mc-status-dot{width:6px;height:6px;border-radius:50%;animation:pulse2 2s infinite}
+    .mc-date{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:5px}
+    .mc-obj{padding:14px 20px;font-size:13px;color:var(--dim);line-height:1.65;border-bottom:1px solid rgba(34,211,238,.06)}
+    .mc-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.03)}
+    .mc-spec{background:#111118;padding:14px 16px}
+    .mc-spec-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:4px}
+    .mc-spec-value{font-size:13px;font-weight:700;color:var(--text)}
+
+    /* ── ThreatMatrix ── */
+    .threat-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .threat-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between}
+    .threat-table{width:100%;border-collapse:collapse}
+    .threat-table th{padding:10px 16px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-weight:600}
+    .threat-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+    .threat-table tr:last-child td{border-bottom:none}
+    .threat-table tr:hover td{background:rgba(255,255,255,.01)}
+    .threat-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+    /* ── RadarChart (SVG) ── */
+    .radar-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .radar-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .radar-body{display:flex;align-items:center;gap:20px;padding:20px}
+    .radar-legend{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+    .radar-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}
+    .radar-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+    /* ── HeatMap ── */
+    .hm-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .hm-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .hm-body{padding:16px}
+    .hm-grid{display:grid;gap:3px}
+    .hm-cell{border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;cursor:default;transition:transform .15s;aspect-ratio:1}
+    .hm-cell:hover{transform:scale(1.15);z-index:10;position:relative}
+    .hm-row-labels{display:flex;flex-direction:column;gap:3px;margin-right:6px}
+    .hm-row-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:flex;align-items:center}
+    .hm-col-labels{display:flex;gap:3px;margin-left:calc(40px + 6px);margin-bottom:3px}
+    .hm-col-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex:1;text-align:center}
+
+    /* ── SourceGrid ── */
+    .sg-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .sg-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .sg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.03)}
+    .sg-card{background:#111118;padding:16px;transition:background .15s;cursor:pointer}
+    .sg-card:hover{background:#16161f}
+    .sg-source-type{font-size:9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+    .sg-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.4}
+    .sg-meta{font-size:11px;color:var(--muted)}
+
+    /* ── GeoInsights ── */
+    .geo-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .geo-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .geo-list{padding:8px}
+    .geo-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;transition:background .15s;cursor:pointer}
+    .geo-row:hover{background:rgba(255,255,255,.025)}
+    .geo-flag{font-size:22px;width:32px;text-align:center;flex-shrink:0}
+    .geo-info{flex:1;min-width:0}
+    .geo-name{font-size:13px;font-weight:600;color:var(--text)}
+    .geo-sub{font-size:11px;color:var(--muted)}
+    .geo-bar-wrap{width:100px;flex-shrink:0}
+    .geo-bar-track{height:5px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
+    .geo-bar-fill{height:100%;border-radius:999px}
+    .geo-val{font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700;min-width:44px;text-align:right}
+
+    /* ── FundingTracker ── */
+    .ft-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .ft-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .ft-total{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;justify-content:space-between}
+    .ft-total-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+    .ft-total-val{font-size:2rem;font-weight:800;color:var(--text)}
+    .ft-list{padding:8px}
+    .ft-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;transition:background .15s}
+    .ft-row:hover{background:rgba(255,255,255,.025)}
+    .ft-round-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;font-family:'JetBrains Mono',monospace;flex-shrink:0;min-width:60px;text-align:center}
+    .ft-row-info{flex:1}
+    .ft-row-company{font-size:13px;font-weight:600;color:var(--text)}
+    .ft-row-date{font-size:11px;color:var(--muted)}
+    .ft-amount{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace}
+
+    /* ── PullQuote ── */
+    .pq-wrap{border-radius:16px;padding:28px;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem;position:relative;overflow:hidden}
+    .pq-bg-quote{position:absolute;top:-10px;left:14px;font-size:120px;color:rgba(99,102,241,.08);line-height:1;font-family:Georgia,serif;pointer-events:none}
+    .pq-text{font-size:1.1rem;font-weight:600;color:var(--text);line-height:1.65;position:relative;font-style:italic}
+    .pq-author{margin-top:16px;display:flex;align-items:center;gap:10px}
+    .pq-author-dot{width:28px;height:2px;background:var(--indigo);border-radius:999px}
+    .pq-author-name{font-size:12px;color:var(--indigo);font-weight:600}
+    .pq-author-title{font-size:11px;color:var(--muted);margin-left:4px}
+
+    /* ── TechStack ── */
+    .ts-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#111118;margin-bottom:.75rem}
+    .ts-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .ts-grid{display:flex;flex-wrap:wrap;gap:8px;padding:16px}
+    .ts-tag{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);font-size:13px;font-weight:500;color:var(--text);cursor:default;transition:all .2s}
+    .ts-tag:hover{border-color:var(--indigo);background:rgba(99,102,241,.08);transform:translateY(-2px)}
+    .ts-icon{font-size:18px}
+
+    /* Divider */
+    hr.div{border:none;border-top:1px solid var(--border);margin:.5rem 0 0}
+
+    /* Animations */
+    @keyframes pulse2{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+    @keyframes drawLine{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .animate-in{animation:fadeIn .5s ease both}
+
+    /* Responsive */
+    @media(max-width:640px){
+      .procon-grid,.kp-grid,.mc-specs,.sg-grid{grid-template-columns:1fr!important}
+      .lb-bar-wrap{display:none}
+      .pipe-body{flex-direction:column}
+      .pipe-arrow{transform:rotate(90deg)}
+      .radar-body{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">◆ react-generative-ui</div>
+    <h1>Component Showcase</h1>
+    <p>All 15 built-in UI components rendered with hardcoded example data. Each can be driven by any LLM output.</p>
+  </div>
+
+  <!-- Quick Nav -->
+  <nav class="nav">
+    <a href="#alertbox">AlertBox</a>
+    <a href="#statcard">StatCard</a>
+    <a href="#procon">ProConTable</a>
+    <a href="#leaderboard">ModelLeaderboard</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#keyplayers">KeyPlayers</a>
+    <a href="#code">CodeSnippet</a>
+    <a href="#comparison">ComparisonBar</a>
+    <a href="#faq">FAQAccordion</a>
+    <a href="#trendline">TrendLine</a>
+    <a href="#pipeline">PipelineDiagram</a>
+    <a href="#mission">MissionCard</a>
+    <a href="#pullquote">PullQuote</a>
+    <a href="#techstack">TechStack</a>
+    <a href="#geo">GeoInsights</a>
+    <a href="#funding">FundingTracker</a>
+    <a href="#heatmap">HeatMap</a>
+    <a href="#radar">RadarChart</a>
+    <a href="#sourcegrid">SourceGrid</a>
+    <a href="#threat">ThreatMatrix</a>
+  </nav>
+
+  <!-- ─── 1. AlertBox ─────────────────────────────────────────────────────── -->
+  <div id="alertbox">
+    <div class="sec-label"><span>⚡</span> AlertBox</div>
+    <div class="comp-badge">&lt;AlertBox type="..." title="..." body="..." /&gt;</div>
+
+    <div class="alert-box" style="background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.2)">
+      <div class="alert-icon" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2)">ℹ️</div>
+      <div><div class="alert-type" style="color:#22d3ee">Note</div><div class="alert-title">Context Window Matters</div><div class="alert-body">GPT-4o supports up to 128K tokens, enabling entire codebases in a single prompt. This dramatically changes how AI tools approach large projects.</div></div>
+    </div>
+    <div class="alert-box" style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2)">
+      <div class="alert-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)">⚠️</div>
+      <div><div class="alert-type" style="color:#f59e0b">Warning</div><div class="alert-title">Rate Limits Apply</div><div class="alert-body">Free-tier API keys are subject to strict rate limits. Use exponential backoff and caching to stay within quota.</div></div>
+    </div>
+    <div class="alert-box" style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2)">
+      <div class="alert-icon" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)">⚡</div>
+      <div><div class="alert-type" style="color:#10b981">Breakthrough</div><div class="alert-title">o3 Achieves Human-Level on ARC-AGI</div><div class="alert-body">OpenAI's o3 model scored 87.5% on ARC-AGI benchmark — the first AI to surpass average human performance on this general reasoning task.</div></div>
+    </div>
+    <div class="alert-box" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)">
+      <div class="alert-icon" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)">🔥</div>
+      <div><div class="alert-type" style="color:#ef4444">Critical</div><div class="alert-title">Do Not Expose API Keys in Frontend</div><div class="alert-body">Embedding API keys in client-side code exposes them to extraction. Always route LLM calls through a server-side proxy.</div></div>
+    </div>
+    <div class="alert-box" style="background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.2)">
+      <div class="alert-icon" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2)">🛡️</div>
+      <div><div class="alert-type" style="color:#8b5cf6">Security Alert</div><div class="alert-title">Prompt Injection Risk Detected</div><div class="alert-body">Untrusted user inputs passed directly to LLM system prompts can override instructions. Always sanitize and scope inputs.</div></div>
+    </div>
+    <div class="alert-box" style="background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.2)">
+      <div class="alert-icon" style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2)">💡</div>
+      <div><div class="alert-type" style="color:#6366f1">Key Insight</div><div class="alert-title">Smaller Models Are Catching Up Fast</div><div class="alert-body">Llama 3.1 8B now matches GPT-3.5 on most benchmarks while running locally. Fine-tuned small models often outperform large general models on specific tasks.</div></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 2. StatCard ─────────────────────────────────────────────────────── -->
+  <div id="statcard">
+    <div class="sec-label"><span>📊</span> StatCard</div>
+    <div class="comp-badge">&lt;StatCard title="..." stats=[{label,value,unit,trend,detail}] /&gt;</div>
+
+    <div class="stat-wrap">
+      <div class="stat-header"><div class="stat-dot"></div><div class="stat-header-label">AI Industry — Q2 2025 Snapshot</div></div>
+      <div class="stat-grid" id="statGrid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="stat-cell">
+          <div class="stat-value-row"><span class="stat-val">$92</span><span class="stat-unit">B</span><span class="stat-trend" style="color:#10b981">↑</span></div>
+          <div class="stat-label-text">Global AI Investment</div><div class="stat-detail">+34% YoY</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value-row"><span class="stat-val">14K+</span><span class="stat-trend" style="color:#10b981">↑</span></div>
+          <div class="stat-label-text">Models on Hugging Face</div><div class="stat-detail">New models weekly</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value-row"><span class="stat-val">128K</span><span class="stat-unit">tok</span></div>
+          <div class="stat-label-text">GPT-4o Context</div><div class="stat-detail">~100k words</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value-row"><span class="stat-val">87.5</span><span class="stat-unit">%</span><span class="stat-trend" style="color:#10b981">↑</span></div>
+          <div class="stat-label-text">o3 on ARC-AGI</div><div class="stat-detail">Human avg: 85%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 3. ProConTable ──────────────────────────────────────────────────── -->
+  <div id="procon">
+    <div class="sec-label"><span>⚖️</span> ProConTable</div>
+    <div class="comp-badge">&lt;ProConTable title="..." pros=[...] cons=[...] entityA="..." entityB="..." /&gt;</div>
+
+    <div class="procon-wrap">
+      <div class="procon-header">Python vs TypeScript — Backend Choice</div>
+      <div class="procon-grid">
+        <div class="procon-side">
+          <div class="procon-side-label" style="color:#10b981">✅ Python — Advantages</div>
+          <ul class="procon-list">
+            <li class="procon-item"><div class="procon-dot" style="background:#10b981"></div>Fastest AI/ML prototyping with NumPy, PyTorch, LangChain</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#10b981"></div>Enormous data science ecosystem — no reinventing wheels</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#10b981"></div>Simple readable syntax; great for scripts and automation</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#10b981"></div>Native async with asyncio and FastAPI</li>
+          </ul>
+        </div>
+        <div class="procon-side">
+          <div class="procon-side-label" style="color:#ef4444">❌ Python — Concerns</div>
+          <ul class="procon-list">
+            <li class="procon-item"><div class="procon-dot" style="background:#ef4444"></div>Runtime speed bottleneck for CPU-bound tasks</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#ef4444"></div>GIL limits true multi-threading</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#ef4444"></div>Dynamic typing leads to hard-to-catch bugs at scale</li>
+            <li class="procon-item"><div class="procon-dot" style="background:#ef4444"></div>No code sharing with frontend</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 4. ModelLeaderboard ─────────────────────────────────────────────── -->
+  <div id="leaderboard">
+    <div class="sec-label"><span>🏆</span> ModelLeaderboard</div>
+    <div class="comp-badge">&lt;ModelLeaderboard title="..." benchmark="..." models=[...] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div class="lb-header-left">🧠 &nbsp; AI Model Leaderboard</div>
+        <div class="lb-bench">Benchmark: MMLU + HumanEval</div>
+      </div>
+      <div id="lbList"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 5. Timeline ─────────────────────────────────────────────────────── -->
+  <div id="timeline">
+    <div class="sec-label"><span>⏱️</span> Timeline</div>
+    <div class="comp-badge">&lt;Timeline title="..." events=[{date,title,description,status,tag}] /&gt;</div>
+
+    <div class="tl-wrap">
+      <div class="tl-header">⏱ History of Large Language Models</div>
+      <div class="tl-body">
+        <div class="tl-item">
+          <div class="tl-spine">
+            <div class="tl-dot" style="background:rgba(16,185,129,.2);border-color:#10b981;color:#10b981">✓</div>
+            <div class="tl-line done"></div>
+          </div>
+          <div class="tl-content"><div class="tl-date">June 2018</div><div class="tl-title">GPT-1 Released by OpenAI</div><div class="tl-desc">First generative pre-trained transformer. 117M parameters. Demonstrated that unsupervised pre-training + fine-tuning was a powerful paradigm.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-spine">
+            <div class="tl-dot" style="background:rgba(16,185,129,.2);border-color:#10b981;color:#10b981">✓</div>
+            <div class="tl-line done"></div>
+          </div>
+          <div class="tl-content"><div class="tl-date">May 2020</div><div class="tl-title">GPT-3 — 175B Parameters <span class="tl-tag">Milestone</span></div><div class="tl-desc">Shocked the world with few-shot learning. 175B parameters. First model to convincingly generate coherent long-form text.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-spine">
+            <div class="tl-dot" style="background:rgba(16,185,129,.2);border-color:#10b981;color:#10b981">✓</div>
+            <div class="tl-line done"></div>
+          </div>
+          <div class="tl-content"><div class="tl-date">Nov 2022</div><div class="tl-title">ChatGPT Launches <span class="tl-tag">Viral</span></div><div class="tl-desc">Reached 100 million users in 2 months. RLHF training made the model safe, helpful, and conversational. Changed public perception of AI forever.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-spine">
+            <div class="tl-dot" style="background:rgba(99,102,241,.25);border-color:#6366f1;animation:pulse2 2s infinite;width:18px;height:18px;border-radius:50%"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content"><div class="tl-date">May 2024</div><div class="tl-title">GPT-4o — Omni Model <span class="tl-tag" style="color:var(--cyan);background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.2)">Current</span></div><div class="tl-desc">Native multimodal: text, audio, and vision in one model. 2x faster and 50% cheaper than GPT-4 Turbo. Sets new standard for frontier models.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-spine">
+            <div class="tl-dot" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1);color:#3f3f5a">○</div>
+          </div>
+          <div class="tl-content"><div class="tl-date">2026 — Projected</div><div class="tl-title">AGI Threshold <span class="tl-tag" style="color:var(--amber);background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)">Upcoming</span></div><div class="tl-desc">Multiple labs targeting human-expert level performance across all cognitive domains. Debate continues on definitions and safety requirements.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 6. KeyPlayers ──────────────────────────────────────────────────── -->
+  <div id="keyplayers">
+    <div class="sec-label"><span>👥</span> KeyPlayers</div>
+    <div class="comp-badge">&lt;KeyPlayers title="..." players=[{name,role,logo,metric,metricLabel,description}] /&gt;</div>
+
+    <div class="kp-wrap">
+      <div class="kp-header">👥 &nbsp; Key Players<span class="kp-count">6 entities</span></div>
+      <div class="kp-grid" id="kpGrid" style="grid-template-columns:repeat(3,1fr)"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 7. CodeSnippet ─────────────────────────────────────────────────── -->
+  <div id="code">
+    <div class="sec-label"><span>💻</span> CodeSnippet</div>
+    <div class="comp-badge">&lt;CodeSnippet title="..." blocks=[{filename,language,code,highlight}] /&gt;</div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots-row">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-tabs">
+          <div class="code-tab active" onclick="switchCode('ts',this)">chat.ts</div>
+          <div class="code-tab" onclick="switchCode('py',this)">main.py</div>
+          <div class="code-tab" onclick="switchCode('bash',this)">install.sh</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="codeLangBadge" class="code-lang-badge" style="color:#22d3ee;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2)">TS</span>
+          <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+        </div>
+      </div>
+      <div class="code-pre" id="codeBody"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 8. ComparisonBar ───────────────────────────────────────────────── -->
+  <div id="comparison">
+    <div class="sec-label"><span>📉</span> ComparisonBar</div>
+    <div class="comp-badge">&lt;ComparisonBar labelA="..." labelB="..." items=[{label,valueA,valueB,unit}] /&gt;</div>
+
+    <div class="cmp-wrap">
+      <div class="cmp-header">
+        <div class="cmp-title">GPT-4o vs Claude 3.5 Sonnet</div>
+        <div class="cmp-legend">
+          <div class="cmp-legend-item"><div class="cmp-legend-dot" style="background:#6366f1"></div><span style="color:#6366f1">GPT-4o</span></div>
+          <div class="cmp-legend-item"><div class="cmp-legend-dot" style="background:#22d3ee"></div><span style="color:#22d3ee">Claude 3.5</span></div>
+        </div>
+      </div>
+      <div class="cmp-body" id="cmpBody"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 9. FAQAccordion ────────────────────────────────────────────────── -->
+  <div id="faq">
+    <div class="sec-label"><span>❓</span> FAQAccordion</div>
+    <div class="comp-badge">&lt;FAQAccordion title="..." items=[{question,answer}] /&gt;</div>
+
+    <div class="faq-wrap">
+      <div class="faq-header">Frequently Asked Questions</div>
+      <div id="faqList"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 10. TrendLine ─────────────────────────────────────────────────── -->
+  <div id="trendline">
+    <div class="sec-label"><span>📈</span> TrendLine</div>
+    <div class="comp-badge">&lt;TrendLine title="..." unit="..." color="..." data=[{label,value}] /&gt;</div>
+
+    <div class="trend-wrap">
+      <div class="trend-header">
+        <div class="trend-title">GPT-4o Weekly Active Users (M)</div>
+        <div class="trend-hover-val" id="trendHover" style="color:#6366f1"></div>
+      </div>
+      <div class="trend-svg-wrap">
+        <svg id="trendSvg" viewBox="0 0 500 150" style="width:100%;height:150px" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 11. PipelineDiagram ───────────────────────────────────────────── -->
+  <div id="pipeline">
+    <div class="sec-label"><span>⚙️</span> PipelineDiagram</div>
+    <div class="comp-badge">&lt;PipelineDiagram title="..." steps=[{id,label,icon,status,duration,description}] /&gt;</div>
+
+    <div class="pipe-wrap">
+      <div class="pipe-header">⚙ LLM Request Pipeline</div>
+      <div class="pipe-body" id="pipeBody"></div>
+      <div id="pipeDesc" style="display:none" class="pipe-desc-box"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 12. MissionCard ───────────────────────────────────────────────── -->
+  <div id="mission">
+    <div class="sec-label"><span>🚀</span> MissionCard</div>
+    <div class="comp-badge">&lt;MissionCard missionName="..." agency="..." objective="..." specs=[...] /&gt;</div>
+
+    <div class="mc-wrap">
+      <div class="mc-header">
+        <div class="mc-stars" id="mcStars"></div>
+        <div class="mc-header-inner">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div class="mc-icon-box">🛸</div>
+            <div>
+              <div class="mc-agency">NASA / JPL</div>
+              <div class="mc-name">Europa Clipper</div>
+              <div class="mc-dest">🎯 &nbsp; Jupiter's moon Europa — subsurface ocean</div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="mc-status" style="background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25)">
+              <div class="mc-status-dot" style="background:#10b981"></div> EN ROUTE
+            </div>
+            <div class="mc-date">📅 &nbsp;Oct 14, 2024 — Launched</div>
+          </div>
+        </div>
+      </div>
+      <div class="mc-obj">Europa Clipper will perform 49 close flybys of Europa to determine whether the moon harbours conditions suitable for life. The spacecraft carries instruments to study the moon's ice shell, interior ocean, and thin atmosphere — making it NASA's largest planetary science mission.</div>
+      <div class="mc-specs" style="grid-template-columns:repeat(3,1fr)">
+        <div class="mc-spec"><div class="mc-spec-label">Mass</div><div class="mc-spec-value">🛰 6,065 kg</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Travel Time</div><div class="mc-spec-value">🕐 5.5 years</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Instruments</div><div class="mc-spec-value">🔬 9 science</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Solar Panels</div><div class="mc-spec-value">☀️ 30.5m span</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Orbital Arrival</div><div class="mc-spec-value">📍 2030</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Flybys</div><div class="mc-spec-value">🔄 49 planned</div></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 13. PullQuote ─────────────────────────────────────────────────── -->
+  <div id="pullquote">
+    <div class="sec-label"><span>💬</span> PullQuote</div>
+    <div class="comp-badge">&lt;PullQuote quote="..." author="..." authorTitle="..." /&gt;</div>
+
+    <div class="pq-wrap">
+      <div class="pq-bg-quote">"</div>
+      <div class="pq-text">The development of full artificial intelligence could spell the end of the human race… It would take off on its own, and re-design itself at an ever increasing rate. Humans, who are limited by slow biological evolution, couldn't compete, and would be superseded.</div>
+      <div class="pq-author">
+        <div class="pq-author-dot"></div>
+        <div><span class="pq-author-name">Stephen Hawking</span><span class="pq-author-title">— Theoretical Physicist, BBC interview 2014</span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 14. TechStack ─────────────────────────────────────────────────── -->
+  <div id="techstack">
+    <div class="sec-label"><span>🧱</span> TechStack</div>
+    <div class="comp-badge">&lt;TechStack title="..." technologies=[{name,icon,category}] /&gt;</div>
+
+    <div class="ts-wrap">
+      <div class="ts-header">Tech Stack — Aetheros AI Platform</div>
+      <div class="ts-grid">
+        <div class="ts-tag"><span class="ts-icon">⚛️</span> React 18</div>
+        <div class="ts-tag"><span class="ts-icon">🔷</span> TypeScript</div>
+        <div class="ts-tag"><span class="ts-icon">▲</span> Next.js 14</div>
+        <div class="ts-tag"><span class="ts-icon">🐍</span> FastAPI</div>
+        <div class="ts-tag"><span class="ts-icon">🧠</span> OpenAI GPT-4o</div>
+        <div class="ts-tag"><span class="ts-icon">🦙</span> Llama 3.1</div>
+        <div class="ts-tag"><span class="ts-icon">🌿</span> MongoDB Atlas</div>
+        <div class="ts-tag"><span class="ts-icon">🔴</span> Redis Cache</div>
+        <div class="ts-tag"><span class="ts-icon">🐳</span> Docker</div>
+        <div class="ts-tag"><span class="ts-icon">☁️</span> AWS EC2</div>
+        <div class="ts-tag"><span class="ts-icon">🔐</span> Auth0</div>
+        <div class="ts-tag"><span class="ts-icon">📊</span> Grafana</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 15. GeoInsights ───────────────────────────────────────────────── -->
+  <div id="geo">
+    <div class="sec-label"><span>🌍</span> GeoInsights</div>
+    <div class="comp-badge">&lt;GeoInsights title="..." regions=[{country,flag,value,metric,description}] /&gt;</div>
+
+    <div class="geo-wrap">
+      <div class="geo-header">Global AI Investment by Region — 2024</div>
+      <div class="geo-list" id="geoList"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 16. FundingTracker ─────────────────────────────────────────────── -->
+  <div id="funding">
+    <div class="sec-label"><span>💰</span> FundingTracker</div>
+    <div class="comp-badge">&lt;FundingTracker title="..." currency="USD" rounds=[{company,amount,amountValue,round,investors,date}] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div class="lb-header-left">💰 &nbsp; AI Startup Funding Activity</div>
+        <div class="lb-bench" id="ftTotal" style="color:#10b981;font-weight:700"></div>
+      </div>
+      <div style="padding:20px" id="ftBody"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 17. HeatMap ────────────────────────────────────────────────────── -->
+  <div id="heatmap">
+    <div class="sec-label"><span>🔥</span> HeatMap</div>
+    <div class="comp-badge">&lt;HeatMap title="..." subtitle="..." color="..." cols={4} cells=[{label,sublabel,value}] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div style="flex:1">
+          <div class="lb-header-left">GPT-4o — Capability Heatmap</div>
+          <div style="font-size:11px;color:#3f3f5a;margin-top:2px">Benchmark scores across all major evaluation categories</div>
+        </div>
+        <div style="font-size:11px;color:#6366f1;font-family:'JetBrains Mono',monospace;font-weight:700">Instruction Following ↑</div>
+      </div>
+      <div style="padding:14px">
+        <div id="hmGrid" style="display:grid;gap:8px"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+          <span style="font-size:10px;color:#3f3f5a">Low</span>
+          <div id="hmLegend" style="flex:1;height:6px;border-radius:999px;overflow:hidden;display:flex"></div>
+          <span style="font-size:10px;color:#3f3f5a">High</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 18. RadarChart ─────────────────────────────────────────────────── -->
+  <div id="radar">
+    <div class="sec-label"><span>🕸️</span> RadarChart</div>
+    <div class="comp-badge">&lt;RadarChart title="..." subtitle="..." color="..." axes=[{label,value}] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div>
+          <div class="lb-header-left">GPT-4o — Capability Radar</div>
+          <div style="font-size:11px;color:#3f3f5a;margin-top:2px">Multi-dimensional model evaluation, scores 0–100</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:24px;padding:20px;flex-wrap:wrap">
+        <svg id="radarSvg" width="220" height="220" style="flex-shrink:0"></svg>
+        <div id="radarLegend" style="flex:1;min-width:200px;display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 19. SourceGrid ─────────────────────────────────────────────────── -->
+  <div id="sourcegrid">
+    <div class="sec-label"><span>🔗</span> SourceGrid</div>
+    <div class="comp-badge">&lt;SourceGrid title="..." sources=[{title,url,domain,publishedDate,snippet,trustScore}] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div class="lb-header-left">🌐 &nbsp; Sources &amp; References</div>
+        <div class="lb-bench">6 sources</div>
+      </div>
+      <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="sgGrid"></div>
+    </div>
+  </div>
+
+  <hr class="div"/>
+
+  <!-- ─── 20. ThreatMatrix ───────────────────────────────────────────────── -->
+  <div id="threat">
+    <div class="sec-label"><span>🛡️</span> ThreatMatrix</div>
+    <div class="comp-badge">&lt;ThreatMatrix title="..." threats=[{name,severity,type,description,affectedSystems,cve}] /&gt;</div>
+
+    <div class="lb-wrap">
+      <div class="lb-header">
+        <div class="lb-header-left">🛡 &nbsp; Threat Intelligence Matrix</div>
+        <div style="display:flex;gap:8px;align-items:center" id="threatBadges"></div>
+      </div>
+      <!-- scanning bar -->
+      <div style="height:2px;background:#111;overflow:hidden">
+        <div style="height:100%;width:80px;background:linear-gradient(90deg,transparent,rgba(239,68,68,.6),transparent);animation:scanAnim 2s linear infinite"></div>
+      </div>
+      <style>@keyframes scanAnim{from{transform:translateX(-100px)}to{transform:translateX(1200px)}}</style>
+      <div id="threatList"></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── ModelLeaderboard Data ──────────────────────────────────────────────────
+const models = [
+  { name:'GPT-4o', maker:'OpenAI', version:'2024-05-13', color:'#6366F1', isNew:false,
+    capabilities:[{name:'Reasoning',score:92},{name:'Coding',score:90},{name:'Math',score:87},{name:'Vision',score:88}],
+    contextWindow:'128K', params:'~200B' },
+  { name:'Claude 3.5 Sonnet', maker:'Anthropic', version:'v2', color:'#22D3EE', isNew:true,
+    capabilities:[{name:'Reasoning',score:91},{name:'Coding',score:94},{name:'Math',score:83},{name:'Vision',score:80}],
+    contextWindow:'200K', params:'~70B est.' },
+  { name:'Gemini 1.5 Pro', maker:'Google DeepMind', color:'#10B981', isNew:false,
+    capabilities:[{name:'Reasoning',score:87},{name:'Coding',score:84},{name:'Math',score:86},{name:'Vision',score:89}],
+    contextWindow:'1M', params:'Unknown' },
+  { name:'Llama 3.1 405B', maker:'Meta AI', color:'#F59E0B', isNew:false,
+    capabilities:[{name:'Reasoning',score:85},{name:'Coding',score:88},{name:'Math',score:80},{name:'Vision',score:0}],
+    contextWindow:'128K', params:'405B' },
+  { name:'Mistral Large 2', maker:'Mistral AI', color:'#EF4444', isNew:false,
+    capabilities:[{name:'Reasoning',score:81},{name:'Coding',score:85},{name:'Math',score:77},{name:'Vision',score:0}],
+    contextWindow:'128K', params:'123B' },
+];
+
+const lbList = document.getElementById('lbList');
+const sorted = [...models].map(m => ({...m, avg: m.capabilities.reduce((s,c)=>s+c.score,0)/m.capabilities.length})).sort((a,b)=>b.avg-a.avg);
+let lbOpen = null;
+
+function renderLB() {
+  lbList.innerHTML = '';
+  sorted.forEach((m, rank) => {
+    const rankClass = rank===0?'background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)':rank===1?'background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.2)':rank===2?'background:rgba(180,83,9,.1);color:#b45309;border:1px solid rgba(180,83,9,.2)':'background:#111;color:#4b5563;border:1px solid #1f1f1f';
+    const isOpen = lbOpen === rank;
+    const row = document.createElement('div');
+    row.innerHTML = `
+      <div class="lb-row" onclick="toggleLB(${rank})" style="${isOpen?'background:rgba(255,255,255,.02)':''}">
+        <div class="lb-rank" style="${rankClass}">${rank+1}</div>
+        <div class="lb-info">
+          <div class="lb-name-row">
+            <span class="lb-name">${m.name}</span>
+            ${m.version?`<span class="lb-version">${m.version}</span>`:''}
+            ${m.isNew?`<span class="lb-new" style="background:${m.color}18;color:${m.color};border:1px solid ${m.color}30">NEW</span>`:''}
+          </div>
+          <div class="lb-maker">${m.maker}</div>
+        </div>
+        <div class="lb-bar-wrap">
+          <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${m.avg}%;background:${m.color};box-shadow:0 0 8px ${m.color}50"></div></div>
+        </div>
+        <div class="lb-score">
+          <div class="lb-score-val" style="color:${m.color}">${Math.round(m.avg)}</div>
+          <div class="lb-score-sub">avg</div>
+        </div>
+        <span style="color:#3f3f5a;font-size:12px;transition:transform .2s;${isOpen?'transform:rotate(90deg)':''}">›</span>
+      </div>
+      ${isOpen?`<div class="lb-detail">
+        ${m.capabilities.filter(c=>c.score>0).map(c=>`
+          <div class="lb-cap">
+            <div class="lb-cap-label"><span style="color:var(--dim);font-size:11px">${c.name}</span><span style="color:${m.color};font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700">${c.score}</span></div>
+            <div class="lb-cap-track"><div style="height:100%;width:${c.score}%;background:${m.color};border-radius:999px"></div></div>
+          </div>`).join('')}
+        <div style="grid-column:1/-1;font-size:11px;font-family:'JetBrains Mono',monospace;color:#3f3f5a;display:flex;gap:16px;margin-top:4px">
+          ${m.contextWindow?`<span>Context: <span style="color:var(--muted)">${m.contextWindow}</span></span>`:''}
+          ${m.params?`<span>Params: <span style="color:var(--muted)">${m.params}</span></span>`:''}
+        </div>
+      </div>`:''}
+    `;
+    lbList.appendChild(row);
+  });
+}
+function toggleLB(rank){ lbOpen = lbOpen===rank?null:rank; renderLB(); }
+renderLB();
+
+// ── KeyPlayers Data ────────────────────────────────────────────────────────
+const players = [
+  {name:'OpenAI',role:'AI Lab',logo:'🧠',metric:'$157B',metricLabel:'valuation',color:'#6366F1',description:'Creator of GPT series and ChatGPT. Backed by Microsoft, targeting AGI by 2027.'},
+  {name:'Anthropic',role:'AI Safety',logo:'🛡️',metric:'$18B',metricLabel:'raised',color:'#22D3EE',description:'Founded by ex-OpenAI team. Focuses on interpretable, safe AI. Creator of Claude models.'},
+  {name:'Google DeepMind',role:'Research',logo:'♊',metric:'Gemini',metricLabel:'flagship',color:'#10B981',description:'Merged division of DeepMind and Google Brain. Created AlphaFold, Gemini, and Imagen.'},
+  {name:'Meta AI',role:'Open Source',logo:'🦙',metric:'405B',metricLabel:'params',color:'#F59E0B',description:'Open-weights Llama series democratised LLM access. Investing heavily in AI infrastructure.'},
+  {name:'Mistral AI',role:'Efficient AI',logo:'💨',metric:'€1.1B',metricLabel:'raised',color:'#EF4444',description:'Paris-based startup building efficient frontier models. Known for Mixtral MoE architecture.'},
+  {name:'Hugging Face',role:'Platform',logo:'🤗',metric:'14K+',metricLabel:'models',color:'#EC4899',description:'The GitHub of AI. Hosts models, datasets, and Spaces. Central to the open-source AI ecosystem.'},
+];
+const kpGrid = document.getElementById('kpGrid');
+let kpOpen = null;
+function renderKP(){
+  kpGrid.innerHTML = '';
+  players.forEach((p,i)=>{
+    const isOpen = kpOpen===i;
+    const div = document.createElement('div');
+    div.className = 'kp-card'+(isOpen?' active':'');
+    div.style.cssText = isOpen?`border-color:${p.color};background:${p.color}10;box-shadow:0 0 20px ${p.color}20`:'';
+    div.onclick = ()=>{ kpOpen = isOpen?null:i; renderKP(); };
+    div.innerHTML = `
+      <div class="kp-logo" style="background:${p.color}12;border-color:${p.color}30">${p.logo}</div>
+      <div class="kp-name">${p.name}</div>
+      <div class="kp-role" style="color:${p.color}">${p.role}</div>
+      <div><span class="kp-metric" style="color:${p.color}">${p.metric}</span><span class="kp-metric-label">${p.metricLabel}</span></div>
+      ${isOpen?`<div class="kp-desc">${p.description}</div>`:''}
+    `;
+    kpGrid.appendChild(div);
+  });
+}
+renderKP();
+
+// ── CodeSnippet Data ───────────────────────────────────────────────────────
+const codeData = {
+  ts: {
+    lang:'TS', color:'#22d3ee',
+    lines:[
+      {t:`<span class="kw">import</span> { GenerativeRenderer, parseBlocks } <span class="kw">from</span> <span class="str">'react-generative-ui'</span>;`},
+      {t:`<span class="kw">import</span> { registry } <span class="kw">from</span> <span class="str">'./registry'</span>;`},
+      {t:''},
+      {t:`<span class="kw">export function</span> <span class="fn2">ChatMessage</span>({ llmOutput }: { llmOutput: <span class="ty">string</span> }) {`, hl:true},
+      {t:`  <span class="cm">// 1. Parse LLM text + JSON into typed blocks</span>`},
+      {t:`  <span class="kw">const</span> blocks = <span class="fn2">parseBlocks</span>(llmOutput);`, hl:true},
+      {t:''},
+      {t:`  <span class="kw">return</span> (`},
+      {t:`    <span class="jsx">&lt;GenerativeRenderer</span>`, hl:true},
+      {t:`      <span class="prop">blocks</span>={blocks}`},
+      {t:`      <span class="prop">registry</span>={registry}`, hl:true},
+      {t:`    <span class="jsx">/&gt;</span>`},
+      {t:`  );`},
+      {t:`}`},
+    ]
+  },
+  py: {
+    lang:'PY', color:'#3b82f6',
+    lines:[
+      {t:`<span class="kw">import</span> openai`},
+      {t:`<span class="kw">import</span> json`},
+      {t:''},
+      {t:`<span class="kw">def</span> <span class="fn2">ask_llm</span>(user_msg: <span class="ty">str</span>) -> <span class="ty">list</span>:`},
+      {t:`    client = openai.<span class="fn2">OpenAI</span>()`, hl:true},
+      {t:''},
+      {t:`    response = client.chat.completions.<span class="fn2">create</span>(`},
+      {t:`        model=<span class="str">"gpt-4o"</span>,`},
+      {t:`        messages=[`},
+      {t:`            {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: SYSTEM_PROMPT},`, hl:true},
+      {t:`            {<span class="str">"role"</span>: <span class="str">"user"</span>,   <span class="str">"content"</span>: user_msg}`},
+      {t:`        ]`},
+      {t:`    )`},
+      {t:`    <span class="kw">return</span> response.choices[<span class="num">0</span>].message.content`},
+    ]
+  },
+  bash: {
+    lang:'SH', color:'#10b981',
+    lines:[
+      {t:`<span class="cm"># Install the package</span>`},
+      {t:`npm install <span class="str">react-generative-ui</span>`},
+      {t:''},
+      {t:`<span class="cm"># Or with yarn</span>`},
+      {t:`yarn add <span class="str">react-generative-ui</span>`},
+      {t:''},
+      {t:`<span class="cm"># Or with pnpm</span>`},
+      {t:`pnpm add <span class="str">react-generative-ui</span>`, hl:true},
+      {t:''},
+      {t:`<span class="cm"># Check it's installed</span>`},
+      {t:`cat package.json | grep <span class="str">"react-generative-ui"</span>`},
+    ]
+  }
+};
+let currentCode = 'ts';
+function renderCode(key){
+  const d = codeData[key];
+  const badge = document.getElementById('codeLangBadge');
+  badge.textContent = d.lang;
+  badge.style.color = d.color;
+  badge.style.background = d.color+'18';
+  badge.style.border = `1px solid ${d.color}25`;
+  const body = document.getElementById('codeBody');
+  body.innerHTML = d.lines.map((l,i)=>`<div class="code-line${l.hl?' hl':''}"><span class="code-ln">${i+1}</span><span class="code-text">${l.t}</span></div>`).join('');
+}
+function switchCode(key, btn){
+  document.querySelectorAll('.code-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active'); currentCode = key; renderCode(key);
+}
+function copyCode(btn){ navigator.clipboard.writeText(codeData[currentCode].lines.map(l=>l.t.replace(/<[^>]+>/g,'')).join('\n')).then(()=>{ btn.textContent='✅ Copied!'; setTimeout(()=>btn.textContent='📋 Copy',2000); }); }
+renderCode('ts');
+
+// ── ComparisonBar Data ─────────────────────────────────────────────────────
+const cmpItems = [
+  {label:'Reasoning (MMLU)',valueA:90,valueB:91,unit:'%'},
+  {label:'Coding (HumanEval)',valueA:90,valueB:94,unit:'%'},
+  {label:'Context Window',valueA:128,valueB:200,unit:'K'},
+  {label:'Speed (tok/s)',valueA:110,valueB:95,unit:''},
+  {label:'Price / 1M tok',valueA:5,valueB:3,unit:'$',higherIsBetter:false},
+];
+const cmpBody = document.getElementById('cmpBody');
+cmpItems.forEach(item=>{
+  const max = Math.max(item.valueA, item.valueB, 1);
+  const pA = (item.valueA/max)*100, pB = (item.valueB/max)*100;
+  const aWins = (item.higherIsBetter!==false) ? item.valueA>item.valueB : item.valueA<item.valueB;
+  cmpBody.innerHTML += `
+    <div class="cmp-row">
+      <div class="cmp-row-header">
+        <span class="cmp-row-label">${item.label}</span>
+        <div class="cmp-row-vals">
+          <span style="color:#6366f1">${item.valueA}${item.unit}</span>
+          <span class="cmp-vs">vs</span>
+          <span style="color:#22d3ee">${item.valueB}${item.unit}</span>
+        </div>
+      </div>
+      <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pA}%;background:${aWins?'#6366f1':'rgba(99,102,241,.4)'};box-shadow:${aWins?'0 0 8px rgba(99,102,241,.5)':'none'}"></div></div>
+      <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pB}%;background:${!aWins?'#22d3ee':'rgba(34,211,238,.4)'};box-shadow:${!aWins?'0 0 8px rgba(34,211,238,.5)':'none'}"></div></div>
+    </div>`;
+});
+
+// ── FAQ Data ──────────────────────────────────────────────────────────────
+const faqs = [
+  {q:'What is react-generative-ui?', a:'It\'s a React library that lets LLMs (like GPT-4o, Claude, Gemini) decide which of your own React components to render and what props to pass. You define a registry of components, the AI outputs structured JSON, and the package handles parsing and rendering.'},
+  {q:'Does it work with any LLM?', a:'Yes — completely LLM-agnostic. It works with OpenAI, Anthropic Claude, Google Gemini, Groq, Ollama, or any model that can produce JSON-formatted text. You simply pass the raw text output to parseBlocks() and it handles the rest.'},
+  {q:'Is streaming supported?', a:'Streaming support is on the roadmap for v1.0. Currently the parser works on complete strings. A partial-JSON streaming parser is planned that can progressively render blocks as they arrive via SSE or ReadableStream.'},
+  {q:'How does the LLM know which components are available?', a:'You call buildSystemPrompt(registry, schemas) which auto-generates a detailed instruction block listing available components and their prop schemas. Paste this into your system prompt and the LLM will output the correct JSON format.'},
+  {q:'Can I use my own existing components?', a:'Absolutely — that\'s the entire point. Your components are styled and implemented exactly how you want them. You just register them in the ComponentRegistry and the LLM will call them by name. No changes to your existing components required.'},
+];
+const faqList = document.getElementById('faqList');
+let faqOpen = 0;
+function renderFAQ(){
+  faqList.innerHTML = '';
+  faqs.forEach((f,i)=>{
+    const isOpen = faqOpen===i;
+    faqList.innerHTML += `
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(${i})">
+          <span class="faq-q-text${isOpen?' open':''}">${f.q}</span>
+          <span class="faq-chevron${isOpen?' open':''}">⌄</span>
+        </button>
+        <div class="faq-body${isOpen?' open':''}">
+          <div class="faq-ans"><div class="faq-ans-inner">${f.a}</div></div>
+        </div>
+      </div>`;
+  });
+}
+function toggleFAQ(i){ faqOpen = faqOpen===i?null:i; renderFAQ(); }
+renderFAQ();
+
+// ── TrendLine SVG ──────────────────────────────────────────────────────────
+(function(){
+  const data = [
+    {l:'Jan',v:42},{l:'Feb',v:55},{l:'Mar',v:61},{l:'Apr',v:58},{l:'May',v:70},
+    {l:'Jun',v:78},{l:'Jul',v:85},{l:'Aug',v:91},{l:'Sep',v:88},{l:'Oct',v:102},{l:'Nov',v:118},{l:'Dec',v:131}
+  ];
+  const svg = document.getElementById('trendSvg');
+  const W=500,H=150,PAD={top:20,right:20,bottom:26,left:36};
+  const plotW=W-PAD.left-PAD.right, plotH=H-PAD.top-PAD.bottom;
+  const minV=Math.min(...data.map(d=>d.v)), maxV=Math.max(...data.map(d=>d.v)), range=maxV-minV||1;
+  const pts = data.map((d,i)=>({x:PAD.left+(i/(data.length-1))*plotW, y:PAD.top+(1-(d.v-minV)/range)*plotH, ...d}));
+  const polyline = pts.map(p=>`${p.x},${p.y}`).join(' ');
+  const area = `M ${pts[0].x},${PAD.top+plotH} L ${pts.map(p=>`${p.x},${p.y}`).join(' L ')} L ${pts[pts.length-1].x},${PAD.top+plotH} Z`;
+  const color = '#6366f1';
+
+  // Grid
+  [0,.25,.5,.75,1].forEach((t,i)=>{
+    const y=PAD.top+t*plotH, val=Math.round(maxV-t*range);
+    svg.innerHTML += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4"/>
+    <text x="${PAD.left-4}" y="${y}" text-anchor="end" dominant-baseline="central" font-size="8" fill="rgba(148,163,184,.5)" font-family="monospace">${val}</text>`;
+  });
+  // Area + Line
+  svg.innerHTML += `<path d="${area}" fill="${color}12"/>
+    <polyline points="${polyline}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1000" stroke-dashoffset="1000" id="trendPolyline"/>`;
+  // Points
+  pts.forEach((pt,i)=>{
+    svg.innerHTML += `
+      <g class="trendpt" data-label="${pt.l}" data-val="${pt.v}" style="cursor:pointer">
+        <rect x="${pt.x-20}" y="${PAD.top}" width="40" height="${plotH}" fill="transparent"/>
+        <circle id="trendDot${i}" cx="${pt.x}" cy="${pt.y}" r="3" fill="${color}" style="opacity:0;transition:opacity .3s ${i*50}ms,r .15s"/>
+      </g>
+      <text x="${pt.x}" y="${H-4}" text-anchor="middle" font-size="8" fill="rgba(148,163,184,.5)" font-family="monospace">${pt.l}</text>`;
+  });
+  // Animate on load
+  setTimeout(()=>{
+    const pl = document.getElementById('trendPolyline');
+    if(pl){ pl.style.transition='stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)'; pl.setAttribute('stroke-dashoffset','0'); }
+    pts.forEach((_,i)=>{ const d=document.getElementById(`trendDot${i}`); if(d) d.style.opacity='1'; });
+  }, 300);
+  // Hover
+  svg.querySelectorAll && setTimeout(()=>{
+    document.querySelectorAll('.trendpt').forEach((g,i)=>{
+      g.addEventListener('mouseenter',()=>{
+        document.getElementById('trendHover').textContent = `${pts[i].l}: ${pts[i].v}M`;
+        const d = document.getElementById(`trendDot${i}`); if(d) d.setAttribute('r','5');
+      });
+      g.addEventListener('mouseleave',()=>{
+        document.getElementById('trendHover').textContent = '';
+        const d = document.getElementById(`trendDot${i}`); if(d) d.setAttribute('r','3');
+      });
+    });
+  }, 400);
+})();
+
+// ── PipelineDiagram ────────────────────────────────────────────────────────
+const pipeSteps = [
+  {id:'input',label:'User Input',icon:'💬',status:'done',duration:'~0ms',description:'User query received and validated. Injected into the prompt template.'},
+  {id:'prompt',label:'Prompt Build',icon:'📝',status:'done',duration:'~2ms',description:'System prompt + component schemas + user message merged into structured request.'},
+  {id:'llm',label:'LLM API Call',icon:'🧠',status:'active',duration:'~800ms',description:'Request sent to GPT-4o endpoint. Streaming tokens received and buffered.'},
+  {id:'parse',label:'parseBlocks()',icon:'🔍',status:'pending',duration:'~1ms',description:'Raw LLM text scanned for JSON blobs. Text and component blocks separated.'},
+  {id:'render',label:'Render UI',icon:'✨',status:'pending',duration:'~5ms',description:'GenerativeRenderer maps each UIBlock to registry component and renders with props.'},
+];
+const pipeBody = document.getElementById('pipeBody');
+const pipeDesc = document.getElementById('pipeDesc');
+let pipeActive = null;
+pipeSteps.forEach((step,i)=>{
+  const node = document.createElement('div');
+  node.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;text-align:center;cursor:pointer';
+  node.innerHTML = `
+    <div class="pipe-node" id="pipeNode${i}">
+      <span style="font-size:26px">${step.icon}</span>
+      ${step.status==='active'?'<span class="pipe-status-dot"></span>':''}
+    </div>
+    <div class="pipe-step-label">${step.label}</div>
+    <div class="pipe-step-dur">${step.duration}</div>`;
+  node.addEventListener('mouseenter',()=>{
+    document.getElementById(`pipeNode${i}`).classList.add('active');
+    pipeDesc.style.display='block';
+    pipeDesc.innerHTML = `<span class="pipe-desc-bold">${step.label}</span> — ${step.description}`;
+  });
+  node.addEventListener('mouseleave',()=>{
+    document.getElementById(`pipeNode${i}`).classList.remove('active');
+    pipeDesc.style.display='none';
+  });
+  pipeBody.appendChild(node);
+  if(i<pipeSteps.length-1){
+    const arr = document.createElement('div');
+    arr.className='pipe-arrow';
+    arr.innerHTML='<div class="pipe-arrow-inner"><div class="pipe-arrow-line"></div><div class="pipe-arrow-head"></div></div>';
+    pipeBody.appendChild(arr);
+  }
+});
+
+// ── MissionCard Stars ──────────────────────────────────────────────────────
+const mcStars = document.getElementById('mcStars');
+for(let i=0;i<24;i++){
+  const s = document.createElement('div');
+  s.className='mc-star';
+  s.style.top=Math.random()*100+'%';
+  s.style.left=Math.random()*100+'%';
+  s.style.opacity=(Math.random()*.6+.2).toString();
+  mcStars.appendChild(s);
+}
+
+// ── GeoInsights Data ────────────────────────────────────────────────────────
+const geoData = [
+  {flag:'🇺🇸',name:'United States',sub:'Silicon Valley + NYC hubs',value:67.2,max:100,color:'#6366f1'},
+  {flag:'🇨🇳',name:'China',sub:'Baidu, Alibaba, ByteDance',value:54.1,max:100,color:'#ef4444'},
+  {flag:'🇬🇧',name:'United Kingdom',sub:'DeepMind, Stability AI',value:18.3,max:100,color:'#22d3ee'},
+  {flag:'🇮🇳',name:'India',sub:'Fast-growing AI startup scene',value:12.7,max:100,color:'#f59e0b'},
+  {flag:'🇩🇪',name:'Germany',sub:'Industrial AI, TU Berlin',value:9.4,max:100,color:'#10b981'},
+  {flag:'🇫🇷',name:'France',sub:'Mistral AI, École Polytechnique',value:8.8,max:100,color:'#ec4899'},
+];
+const geoList = document.getElementById('geoList');
+geoData.forEach(r=>{
+  const row = document.createElement('div');
+  row.className='geo-row';
+  row.innerHTML = `
+    <div class="geo-flag">${r.flag}</div>
+    <div class="geo-info"><div class="geo-name">${r.name}</div><div class="geo-sub">${r.sub}</div></div>
+    <div class="geo-bar-wrap"><div class="geo-bar-track"><div class="geo-bar-fill" style="width:${r.value}%;background:${r.color}"></div></div></div>
+    <div class="geo-val" style="color:${r.color}">$${r.value}B</div>`;
+  geoList.appendChild(row);
+});
+
+// ── FundingTracker ───────────────────────────────────────────────────────────
+(function(){
+  const ftEl = document.getElementById('ftBody');
+  const rounds = [
+    {company:'OpenAI',amount:'$10B',amountValue:10000,round:'Strategic',investors:['Microsoft'],date:'Jan 2023',color:'#6366f1'},
+    {company:'Anthropic',amount:'$4B',amountValue:4000,round:'Series E',investors:['Amazon','Google'],date:'Nov 2023',color:'#22d3ee'},
+    {company:'Mistral AI',amount:'€600M',amountValue:650,round:'Series B',investors:['a16z','Salesforce'],date:'Jun 2024',color:'#ef4444'},
+    {company:'Cohere',amount:'$270M',amountValue:270,round:'Series D',investors:['Nvidia','Oracle'],date:'Jul 2023',color:'#10b981'},
+    {company:'Hugging Face',amount:'$235M',amountValue:235,round:'Series D',investors:['Google','Salesforce','Amazon'],date:'Aug 2023',color:'#ec4899'},
+    {company:'Stability AI',amount:'$101M',amountValue:101,round:'Seed',investors:['Coatue','Lightspeed'],date:'Oct 2022',color:'#f59e0b'},
+  ];
+  const maxVal = Math.max(...rounds.map(r=>r.amountValue));
+  const total = rounds.reduce((s,r)=>s+r.amountValue,0);
+  let hoveredFT = null;
+  function renderFT(){
+    ftEl.innerHTML='';
+    rounds.forEach((r,i)=>{
+      const pct=(r.amountValue/maxVal)*100;
+      const div=document.createElement('div');
+      div.style.cssText='margin-bottom:16px;cursor:default';
+      div.innerHTML=`
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:7px;height:7px;border-radius:50%;background:${r.color}"></div>
+            <span style="font-size:13px;font-weight:700;color:var(--text)">${r.company}</span>
+            <span style="font-size:10px;padding:1px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;background:${r.color}18;color:${r.color};border:1px solid ${r.color}30">${r.round}</span>
+          </div>
+          <div style="text-align:right">
+            <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${r.color}">${r.amount}</span>
+            <div style="font-size:10px;color:#3f3f5a;font-family:'JetBrains Mono',monospace">${r.date}</div>
+          </div>
+        </div>
+        <div style="height:7px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden">
+          <div style="height:100%;border-radius:999px;background:${r.color};width:${pct}%;box-shadow:${hoveredFT===i?'0 0 10px '+r.color+'60':'none'};transition:width 1s ${i*80}ms,box-shadow .2s"></div>
+        </div>
+        ${hoveredFT===i&&r.investors?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">${r.investors.map(inv=>`<span style="font-size:10px;padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);font-family:'JetBrains Mono',monospace">${inv}</span>`).join('')}</div>`:''}`;
+      div.addEventListener('mouseenter',()=>{ hoveredFT=i; renderFT(); });
+      div.addEventListener('mouseleave',()=>{ hoveredFT=null; renderFT(); });
+      ftEl.appendChild(div);
+    });
+  }
+  const totalStr = total>=1000?`$${(total/1000).toFixed(1)}B`:`$${total}M`;
+  document.getElementById('ftTotal').textContent='Total: '+totalStr;
+  renderFT();
+})();
+
+// ── HeatMap ──────────────────────────────────────────────────────────────────
+(function(){
+  const cells = [
+    {label:'Reasoning',sublabel:'Chain-of-thought',value:92},
+    {label:'Coding',sublabel:'HumanEval',value:90},
+    {label:'Math',sublabel:'MATH benchmark',value:87},
+    {label:'Vision',sublabel:'MMBench',value:83},
+    {label:'Multilingual',sublabel:'MGSM',value:78},
+    {label:'Summarisation',sublabel:'Long-form',value:88},
+    {label:'Instruction Following',sublabel:'IFEval',value:94},
+    {label:'Tool Use',sublabel:'Function calling',value:76},
+    {label:'Long Context',sublabel:'RULER 128K',value:80},
+    {label:'Safety',sublabel:'StrongREJECT',value:85},
+    {label:'Creative Writing',sublabel:'ELO rating',value:72},
+    {label:'RAG',sublabel:'BEIR suite',value:69},
+  ];
+  const color='#6366f1';
+  const container=document.getElementById('hmGrid');
+  const hexToRgb=h=>{const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return{r,g,b};};
+  const rgb=hexToRgb(color);
+  container.style.gridTemplateColumns='repeat(4,1fr)';
+  cells.forEach((cell,i)=>{
+    const alpha=(cell.value/100)*0.85+0.05;
+    const borderAlpha=(cell.value/100)*0.5+0.1;
+    const div=document.createElement('div');
+    div.className='hm-cell';
+    div.style.cssText=`background:rgba(${rgb.r},${rgb.g},${rgb.b},${alpha});border:1px solid rgba(${rgb.r},${rgb.g},${rgb.b},${borderAlpha});border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:3px;cursor:default;position:relative;overflow:hidden;transition:transform .15s`;
+    div.title=`${cell.label}: ${cell.value}%`;
+    div.innerHTML=`
+      <span style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3">${cell.label}</span>
+      <span style="font-size:9px;color:var(--dim);line-height:1.2">${cell.sublabel}</span>
+      <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${color};margin-top:2px;font-weight:700">${cell.value}%</span>
+      <div style="position:absolute;bottom:0;left:0;width:${cell.value}%;height:2px;background:${color};border-radius:0 0 999px 0"></div>`;
+    div.addEventListener('mouseenter',()=>div.style.transform='scale(1.06)');
+    div.addEventListener('mouseleave',()=>div.style.transform='scale(1)');
+    container.appendChild(div);
+  });
+  // Legend
+  const legend=document.getElementById('hmLegend');
+  for(let v=10;v<=100;v+=10){
+    const s=document.createElement('div');
+    s.style.cssText=`flex:1;height:6px;background:rgba(${rgb.r},${rgb.g},${rgb.b},${(v/100)*0.85+0.05})`;
+    legend.appendChild(s);
+  }
+})();
+
+// ── RadarChart ────────────────────────────────────────────────────────────────
+(function(){
+  const axes = [
+    {label:'Reasoning',value:92},
+    {label:'Coding',value:90},
+    {label:'Math',value:87},
+    {label:'Vision',value:83},
+    {label:'Safety',value:88},
+    {label:'Speed',value:75},
+  ];
+  const color='#6366f1';
+  const N=axes.length,size=220,cx=110,cy=110,R=80;
+  const angleStep=(2*Math.PI)/N, startAngle=-Math.PI/2;
+  const getPoint=(i,r)=>({x:cx+r*Math.cos(startAngle+i*angleStep),y:cy+r*Math.sin(startAngle+i*angleStep)});
+  const poly=scale=>axes.map((_,i)=>{const p=getPoint(i,R*scale);return `${p.x},${p.y}`;}).join(' ');
+  const dataPoly=axes.map((ax,i)=>{const p=getPoint(i,R*(ax.value/100));return `${p.x},${p.y}`;}).join(' ');
+  const svg=document.getElementById('radarSvg');
+  // Rings
+  [.25,.5,.75,1].forEach(r=>{svg.innerHTML+=`<polygon points="${poly(r)}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;});
+  // Axes
+  axes.forEach((_,i)=>{const p=getPoint(i,R);svg.innerHTML+=`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;});
+  // Data
+  svg.innerHTML+=`<polygon points="${dataPoly}" fill="${color}22" stroke="${color}" stroke-width="2" style="filter:drop-shadow(0 0 6px ${color}44);transition:all 800ms"/>  `;
+  // Points
+  axes.forEach((ax,i)=>{const p=getPoint(i,R*(ax.value/100));svg.innerHTML+=`<circle cx="${p.x}" cy="${p.y}" r="4" fill="${color}"/>`;});
+  // Labels
+  axes.forEach((ax,i)=>{const p=getPoint(i,R+18);svg.innerHTML+=`<text x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="central" font-size="9" fill="rgba(148,163,184,.8)" font-family="monospace">${ax.label}</text>`;});
+  // Legend bars
+  const legEl=document.getElementById('radarLegend');
+  axes.forEach(ax=>{
+    legEl.innerHTML+=`
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:var(--dim)">${ax.label}</span><span style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${color}">${ax.value}</span></div>
+        <div style="height:4px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden"><div style="height:100%;width:${ax.value}%;background:${color};border-radius:999px"></div></div>
+      </div>`;
+  });
+})();
+
+// ── SourceGrid ────────────────────────────────────────────────────────────────
+(function(){
+  const sources=[
+    {title:'GPT-4 Technical Report',domain:'openai.com',publishedDate:'Mar 2023',snippet:'We report the development of GPT-4, a large-scale, multimodal model which can accept image and text inputs.',trustScore:98},
+    {title:'Claude 3 Model Card — Anthropic',domain:'anthropic.com',publishedDate:'Mar 2024',snippet:'Introduces Claude 3 Haiku, Sonnet and Opus. Opus achieves top performance across benchmarks.',trustScore:96},
+    {title:'Gemini: A Family of Highly Capable Multimodal Models',domain:'deepmind.google',publishedDate:'Dec 2023',snippet:'Gemini 1.0 natively multimodal, trained on text, images, video, audio and code simultaneously.',trustScore:95},
+    {title:'Llama 3 — Meta AI Blog',domain:'ai.meta.com',publishedDate:'Apr 2024',snippet:'Meta releases Llama 3 with 8B and 70B parameter models trained on over 15T tokens.',trustScore:90},
+    {title:'Mistral 7B — Arxiv',domain:'arxiv.org',publishedDate:'Oct 2023',snippet:'Outperforms Llama 2 13B on all benchmarks evaluated, using grouped-query attention and sliding window attention.',trustScore:88},
+    {title:'State of AI Report 2024',domain:'stateof.ai',publishedDate:'Oct 2024',snippet:'Annual report covering AI research, industry, safety and policy. Essential reading for anyone in the field.',trustScore:85},
+  ];
+  const grid=document.getElementById('sgGrid');
+  sources.forEach((src,i)=>{
+    const a=document.createElement('a');
+    a.href='#'; a.style.cssText='display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.05);background:transparent;text-decoration:none;color:inherit;transition:all .2s;cursor:pointer';
+    a.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)">${src.domain}</span>
+        <span style="font-size:12px;color:#3f3f5a">↗</span>
+      </div>
+      <p style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin:0">${src.title}</p>
+      <p style="font-size:11px;color:#4b5563;line-height:1.5;margin:0">${src.snippet}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">
+        <span style="font-size:10px;color:#3f3f5a">${src.publishedDate}</span>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div style="width:50px;height:4px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden"><div style="height:100%;width:${src.trustScore}%;background:${src.trustScore>70?'#10b981':src.trustScore>40?'#f59e0b':'#ef4444'};border-radius:999px"></div></div>
+          <span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#3f3f5a">${src.trustScore}%</span>
+        </div>
+      </div>`;
+    a.addEventListener('mouseenter',()=>{a.style.borderColor='rgba(99,102,241,.25)';a.style.background='rgba(99,102,241,.04)';});
+    a.addEventListener('mouseleave',()=>{a.style.borderColor='rgba(255,255,255,.05)';a.style.background='transparent';});
+    grid.appendChild(a);
+  });
+})();
+
+// ── ThreatMatrix ──────────────────────────────────────────────────────────────
+(function(){
+  const threats=[
+    {name:'SQL Injection via LLM Tool Calls',severity:'critical',type:'Injection',description:'LLM-generated SQL queries from user input are executed without parameterisation, enabling full database read/write.',affectedSystems:['API Gateway','PostgreSQL','Auth Service'],cve:'CVE-2024-38189'},
+    {name:'Prompt Injection in System Prompt',severity:'critical',type:'Prompt Attack',description:'Malicious user input overrides system-level instructions, causing the LLM to exfiltrate data or perform unauthorized actions.',affectedSystems:['Chat API','LLM Inference'],cve:null},
+    {name:'API Key Exposed in Client Bundle',severity:'high',type:'Credential Leak',description:'OpenAI API keys bundled in frontend JavaScript are extracted via browser DevTools, enabling unauthorized API usage.',affectedSystems:['React App','CI/CD Pipeline'],cve:null},
+    {name:'Model Denial-of-Service via Long Context',severity:'high',type:'DoS',description:'Attacker sends maximum-length prompts at high rate, exhausting token budget and causing latency spikes for other users.',affectedSystems:['Rate Limiter','LLM API'],cve:null},
+    {name:'Outdated Dependency with Known CVE',severity:'medium',type:'Supply Chain',description:'Package `langchain@0.0.148` has a known SSRF vulnerability. Upgrade to 0.1.x or later immediately.',affectedSystems:['Backend Service'],cve:'CVE-2024-21011'},
+    {name:'Missing HTTPS on Internal API',severity:'low',type:'Transport Security',description:'Internal microservices communicate over HTTP inside the VPC, risking interception in shared environments.',affectedSystems:['Internal Services'],cve:null},
+  ];
+  let threatOpen=null;
+  function renderThreats(){
+    const el=document.getElementById('threatList');
+    el.innerHTML='';
+    const critCount=threats.filter(t=>t.severity==='critical').length;
+    const highCount=threats.filter(t=>t.severity==='high').length;
+    document.getElementById('threatBadges').innerHTML=`
+      ${critCount>0?`<span style="font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:5px;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)">${critCount} CRITICAL</span>`:''}
+      ${highCount>0?`<span style="font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:5px;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2)">${highCount} HIGH</span>`:''}`;  
+    const sev={critical:{color:'#ef4444',bg:'rgba(239,68,68,.08)',icon:'🛡️',label:'CRITICAL'},high:{color:'#f59e0b',bg:'rgba(245,158,11,.08)',icon:'⚠️',label:'HIGH'},medium:{color:'#f59e0b',bg:'rgba(245,158,11,.05)',icon:'🛡',label:'MEDIUM'},low:{color:'#10b981',bg:'rgba(16,185,129,.06)',icon:'✅',label:'LOW'}};
+    threats.forEach((t,i)=>{
+      const s=sev[t.severity];
+      const isOpen=threatOpen===i;
+      const btn=document.createElement('button');
+      btn.style.cssText='width:100%;text-align:left;padding:14px 20px;display:flex;align-items:flex-start;gap:14px;background:transparent;border:none;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);color:inherit;font-family:inherit;transition:background .15s';
+      btn.onmouseenter=()=>btn.style.background='rgba(255,255,255,.01)';
+      btn.onmouseleave=()=>btn.style.background='transparent';
+      btn.innerHTML=`
+        <div style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:${s.bg};border:1px solid ${s.color}30;flex-shrink:0;margin-top:2px;font-size:16px">${s.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:4px">
+            <span style="font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;color:${s.color}">${s.label}</span>
+            <span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#6b7280;font-family:'JetBrains Mono',monospace">${t.type}</span>
+            ${t.cve?`<span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#3f3f5a">${t.cve}</span>`:''}
+          </div>
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin:0">${t.name}</p>
+          ${isOpen?`
+            <p style="font-size:12px;color:var(--dim);line-height:1.6;margin:8px 0 6px">${t.description}</p>
+            ${t.affectedSystems?`<div style="display:flex;flex-wrap:wrap;gap:5px">${t.affectedSystems.map(sys=>`<span style="font-size:10px;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;background:${s.bg};color:${s.color};border:1px solid ${s.color}25">${sys}</span>`).join('')}</div>`:''}`:''}  
+        </div>
+        <div style="width:3px;align-self:stretch;border-radius:999px;background:${s.bg};flex-shrink:0">
+          <div style="width:100%;border-radius:999px;background:${s.color};height:${t.severity==='critical'?'100':t.severity==='high'?'70':'40'}%"></div>
+        </div>`;
+      btn.onclick=()=>{threatOpen=isOpen?null:i;renderThreats();};
+      el.appendChild(btn);
+    });
+  }
+  renderThreats();
+})();
+</script>
+</body>
+</html>

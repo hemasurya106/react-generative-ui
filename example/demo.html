@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>react-generative-ui — Interactive Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080810;
+      --surface: #0f0f1a;
+      --surface2: #141428;
+      --border: #1e1e35;
+      --border2: #2a2a45;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99,102,241,0.15);
+      --indigo-border: rgba(99,102,241,0.3);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --cyan: #22d3ee;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(99,102,241,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(16,185,129,0.04) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+    /* ── Header ── */
+    .hero { text-align: center; padding: 4rem 0 3rem; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 999px;
+      background: var(--indigo-glow); border: 1px solid var(--indigo-border);
+      color: #818cf8; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 1.5rem; letter-spacing: 0.05em;
+    }
+    .hero-badge::before { content: '◆'; font-size: 8px; }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #f1f5f9 0%, #818cf8 50%, #22d3ee 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1; margin-bottom: 1rem;
+    }
+    .hero p {
+      color: var(--text-dim); font-size: 1.1rem; max-width: 600px;
+      margin: 0 auto; line-height: 1.7;
+    }
+
+    /* ── Section Headers ── */
+    .section-label {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: var(--indigo); text-transform: uppercase; letter-spacing: 0.15em;
+      margin-bottom: 1.25rem;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Pipeline Diagram ── */
+    .pipeline {
+      display: flex; align-items: stretch; gap: 0;
+      margin: 2.5rem 0; overflow-x: auto; padding-bottom: 8px;
+    }
+    .pipe-step {
+      flex: 1; min-width: 160px;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; position: relative;
+    }
+    .pipe-step:not(:last-child)::after {
+      content: '→';
+      position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+      color: var(--indigo); font-size: 1.2rem; z-index: 2;
+    }
+    .pipe-box {
+      width: 100%; padding: 1.25rem 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; cursor: default;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .pipe-box:hover {
+      border-color: var(--indigo);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(99,102,241,0.15);
+    }
+    .pipe-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+    .pipe-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .pipe-sub { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .tab {
+      padding: 8px 16px; border-radius: 8px 8px 0 0;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      background: transparent; border: none; color: var(--text-muted);
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab.active { color: var(--indigo); border-bottom-color: var(--indigo); background: var(--indigo-glow); }
+    .tab:hover:not(.active) { color: var(--text-dim); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Code Box ── */
+    .code-box {
+      background: #060610; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; margin-bottom: 1rem;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .code-dots { display: flex; gap: 5px; }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-filename {
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); flex: 1; text-align: center;
+    }
+    .code-lang {
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    }
+    pre.code {
+      padding: 1.25rem 1.5rem; font-size: 13px; line-height: 1.7;
+      font-family: 'JetBrains Mono', monospace; color: #c9d1d9;
+      overflow-x: auto; white-space: pre;
+    }
+    .kw { color: #ff7b72; }
+    .fn { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .cm { color: #6e7681; font-style: italic; }
+    .ty { color: #ffa657; }
+    .op { color: #79c0ff; }
+    .jsx { color: #7ee787; }
+    .prop { color: #e6c07b; }
+    .num { color: #f78166; }
+
+    /* ── Flow Arrows ── */
+    .flow-arrow {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; color: var(--indigo); font-size: 22px;
+      margin: 0.5rem 0; opacity: 0.7;
+    }
+    .flow-label {
+      font-size: 11px; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Live Simulator ── */
+    .simulator {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .sim-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px; background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .sim-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .sim-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      background: rgba(16,185,129,0.15); color: var(--emerald);
+      border: 1px solid rgba(16,185,129,0.3); font-family: 'JetBrains Mono', monospace;
+    }
+    .sim-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .sim-pane {
+      padding: 1.5rem;
+    }
+    .sim-pane:first-child { border-right: 1px solid var(--border); }
+    .sim-pane-label {
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    .llm-textarea {
+      width: 100%; height: 220px;
+      background: #060610; border: 1px solid var(--border2);
+      border-radius: 10px; padding: 1rem;
+      color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; line-height: 1.7; resize: none;
+      transition: border-color 0.2s;
+    }
+    .llm-textarea:focus { outline: none; border-color: var(--indigo); }
+    .parse-btn {
+      margin-top: 10px; width: 100%; padding: 10px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+    .parse-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .parse-btn:active { transform: translateY(0); }
+
+    .presets { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .preset-btn {
+      padding: 4px 10px; border-radius: 6px; font-size: 11px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--text-muted); cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+    .preset-btn.active { background: var(--indigo-glow); border-color: var(--indigo); color: #818cf8; }
+
+    /* ── Rendered Components ── */
+    .rendered-area { min-height: 220px; }
+
+    .r-text { color: var(--text-dim); font-size: 14px; line-height: 1.7; margin-bottom: 0.75rem; }
+
+    .r-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .r-stat-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .r-stat-card:hover { border-color: var(--indigo); transform: translateY(-2px); }
+    .r-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .r-stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); }
+    .r-stat-sub { font-size: 10px; color: var(--indigo); margin-top: 4px; }
+
+    .r-procon {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem; margin-bottom: 10px;
+    }
+    .r-procon-title { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+    .r-procon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .r-procon-col-label { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+    .r-procon-item { font-size: 12px; color: var(--text-dim); padding: 3px 0; }
+
+    .r-alert {
+      padding: 0.75rem 1rem; border-radius: 8px; border-left: 3px solid;
+      background: var(--surface2); font-size: 13px; margin-bottom: 10px; line-height: 1.5;
+    }
+
+    .r-code-block {
+      background: #060610; border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; margin-bottom: 10px;
+    }
+    .r-code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .r-code-lang { font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .r-code-body { padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5d6ff; line-height: 1.6; white-space: pre; overflow-x: auto; }
+
+    .r-leaderboard {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; margin-bottom: 10px;
+    }
+    .r-lb-row {
+      display: grid; grid-template-columns: 40px 1fr auto;
+      align-items: center; gap: 10px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .r-lb-row:last-child { border-bottom: none; }
+    .r-lb-row:hover { background: rgba(99,102,241,0.05); }
+    .r-lb-rank { font-size: 14px; font-weight: 800; color: var(--text-muted); text-align: center; }
+    .r-lb-rank.gold { color: #fbbf24; }
+    .r-lb-rank.silver { color: #94a3b8; }
+    .r-lb-rank.bronze { color: #b45309; }
+    .r-lb-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .r-lb-score { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--indigo); font-weight: 700; }
+
+    .r-empty {
+      display: flex; align-items: center; justify-content: center;
+      height: 180px; color: var(--text-muted); font-size: 13px;
+      border: 2px dashed var(--border); border-radius: 10px;
+      flex-direction: column; gap: 8px;
+    }
+    .r-empty-icon { font-size: 2rem; opacity: 0.3; }
+
+    /* ── Use Cases ── */
+    .use-cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin: 2rem 0; }
+    .use-case {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .use-case:hover {
+      border-color: var(--indigo);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(99,102,241,0.1);
+    }
+    .uc-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+    .uc-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .uc-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem; }
+    .uc-components { display: flex; flex-wrap: wrap; gap: 5px; }
+    .uc-tag {
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      padding: 2px 8px; border-radius: 4px;
+      background: var(--indigo-glow); border: 1px solid var(--indigo-border); color: #818cf8;
+    }
+
+    /* ── NPM Install ── */
+    .npm-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; margin: 2rem 0;
+    }
+    .npm-command {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.1rem;
+      color: var(--emerald); font-weight: 500;
+    }
+    .npm-command span { color: var(--text-muted); }
+    .copy-btn {
+      padding: 7px 16px; border-radius: 8px;
+      background: var(--indigo-glow); border: 1px solid var(--indigo-border);
+      color: #818cf8; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: var(--indigo); color: white; border-color: var(--indigo); }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .sim-body { grid-template-columns: 1fr; }
+      .sim-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .pipeline { flex-direction: column; gap: 1rem; }
+      .pipe-step::after { display: none; }
+      .npm-box { flex-direction: column; text-align: center; }
+    }
+
+    /* ── Typing animation ── */
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .cursor { display: inline-block; width: 2px; height: 14px; background: var(--indigo); animation: blink 1s infinite; vertical-align: middle; margin-left: 2px; }
+
+    /* ── Pulse dot ── */
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); animation: pulse 2s infinite; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">npm install react-generative-ui</div>
+    <h1>Turn LLM Text into<br/>Live React UIs</h1>
+    <p>
+      A single package that parses AI output and renders your own React components —
+      with no server required, no vendor lock-in, works with any LLM.
+    </p>
+  </div>
+
+  <!-- NPM Box -->
+  <div class="npm-box">
+    <div class="npm-command"><span>$</span> npm install react-generative-ui</div>
+    <button class="copy-btn" onclick="copyNpm(this)">📋 Copy</button>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="section-label">How It Works</div>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-box">
+        <div class="pipe-icon">🤖</div>
+        <div class="pipe-title">LLM Output</div>
+        <div class="pipe-sub">Any AI API<br/>OpenAI / Groq / Gemini</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box">
+        <div class="pipe-icon">🔍</div>
+        <div class="pipe-title">parseBlocks()</div>
+        <div class="pipe-sub">Splits text + JSON<br/>into UIBlock[]</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box">
+        <div class="pipe-icon">🗂️</div>
+        <div class="pipe-title">Your Registry</div>
+        <div class="pipe-sub">componentName →<br/>React component</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box">
+        <div class="pipe-icon">⚛️</div>
+        <div class="pipe-title">GenerativeRenderer</div>
+        <div class="pipe-sub">Renders each block<br/>with its props</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box">
+        <div class="pipe-icon">✨</div>
+        <div class="pipe-title">Rich UI</div>
+        <div class="pipe-sub">Cards, tables, charts<br/>— your design</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Code Walkthrough -->
+  <div class="section-label">Step-by-Step Integration</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(event, 'step1')">1. Install</button>
+    <button class="tab" onclick="switchTab(event, 'step2')">2. Define Components</button>
+    <button class="tab" onclick="switchTab(event, 'step3')">3. Build Registry</button>
+    <button class="tab" onclick="switchTab(event, 'step4')">4. Prompt LLM</button>
+    <button class="tab" onclick="switchTab(event, 'step5')">5. Parse & Render</button>
+  </div>
+
+  <div id="step1" class="tab-panel active">
+    <div class="code-box">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-filename">terminal</div>
+        <div class="code-lang" style="color:#10b981;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)">BASH</div>
+      </div>
+      <pre class="code"><span class="cm"># Install the package</span>
+<span class="fn">npm</span> install react-generative-ui
+
+<span class="cm"># That's it. Zero additional dependencies beyond React 18+.</span></pre>
+    </div>
+    <p style="color:var(--text-muted);font-size:13px;line-height:1.7;">
+      The package is a tiny ~4KB bundle (ESM + CJS). It has <strong style="color:var(--text)">no runtime dependencies</strong> — only peer deps of React and ReactDOM which you already have.
+    </p>
+  </div>
+
+  <div id="step2" class="tab-panel">
+    <div class="code-box">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-filename">components/StatCard.tsx</div>
+        <div class="code-lang" style="color:#22d3ee;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2)">TSX</div>
+      </div>
+      <pre class="code"><span class="cm">// These are YOUR components — styled however you want.</span>
+<span class="cm">// The package just calls them with the props the LLM provides.</span>
+
+<span class="kw">const</span> <span class="fn">StatCard</span> = ({ title, value, subtitle }: {
+  <span class="prop">title</span>: <span class="ty">string</span>;
+  <span class="prop">value</span>: <span class="ty">string</span>;
+  <span class="prop">subtitle</span>?: <span class="ty">string</span>;
+}) => (
+  <span class="jsx">&lt;div className="stat-card"&gt;</span>
+    <span class="jsx">&lt;p className="label"&gt;</span>{title}<span class="jsx">&lt;/p&gt;</span>
+    <span class="jsx">&lt;h2 className="value"&gt;</span>{value}<span class="jsx">&lt;/h2&gt;</span>
+    {subtitle &amp;&amp; <span class="jsx">&lt;small&gt;</span>{subtitle}<span class="jsx">&lt;/small&gt;</span>}
+  <span class="jsx">&lt;/div&gt;</span>
+);
+
+<span class="kw">const</span> <span class="fn">ProConTable</span> = ({ title, pros, cons }) => (
+  <span class="jsx">&lt;div className="procon"&gt;</span>
+    <span class="jsx">&lt;h4&gt;</span>{title}<span class="jsx">&lt;/h4&gt;</span>
+    <span class="jsx">&lt;div className="grid"&gt;</span>
+      <span class="jsx">&lt;ul&gt;</span>{pros.map(<span class="fn">p</span> =&gt; <span class="jsx">&lt;li&gt;</span>✅ {p}<span class="jsx">&lt;/li&gt;</span>)}<span class="jsx">&lt;/ul&gt;</span>
+      <span class="jsx">&lt;ul&gt;</span>{cons.map(<span class="fn">c</span> =&gt; <span class="jsx">&lt;li&gt;</span>❌ {c}<span class="jsx">&lt;/li&gt;</span>)}<span class="jsx">&lt;/ul&gt;</span>
+    <span class="jsx">&lt;/div&gt;</span>
+  <span class="jsx">&lt;/div&gt;</span>
+);</pre>
+    </div>
+  </div>
+
+  <div id="step3" class="tab-panel">
+    <div class="code-box">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-filename">registry.ts</div>
+        <div class="code-lang" style="color:#22d3ee;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2)">TS</div>
+      </div>
+      <pre class="code"><span class="kw">import</span> { <span class="ty">ComponentRegistry</span> } <span class="kw">from</span> <span class="str">'react-generative-ui'</span>;
+<span class="kw">import</span> { StatCard } <span class="kw">from</span> <span class="str">'./StatCard'</span>;
+<span class="kw">import</span> { ProConTable } <span class="kw">from</span> <span class="str">'./ProConTable'</span>;
+<span class="kw">import</span> { AlertBox } <span class="kw">from</span> <span class="str">'./AlertBox'</span>;
+<span class="kw">import</span> { ModelLeaderboard } <span class="kw">from</span> <span class="str">'./ModelLeaderboard'</span>; <span class="cm">// ← your existing ones!</span>
+<span class="kw">import</span> { CodeSnippet } <span class="kw">from</span> <span class="str">'./CodeSnippet'</span>;
+
+<span class="cm">// The registry is just a plain object: name → component</span>
+<span class="kw">export const</span> registry: <span class="ty">ComponentRegistry</span> = {
+  StatCard,
+  ProConTable,
+  AlertBox,
+  ModelLeaderboard,
+  CodeSnippet,
+};</pre>
+    </div>
+    <p style="color:var(--text-muted);font-size:13px;line-height:1.7;margin-top:1rem;">
+      The key insight: the <strong style="color:var(--text)">string key must match</strong> what you tell the LLM to use. The LLM outputs <code style="color:#818cf8">"componentName": "StatCard"</code> and the registry maps that string to your actual <code style="color:#818cf8">StatCard</code> component.
+    </p>
+  </div>
+
+  <div id="step4" class="tab-panel">
+    <div class="code-box">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-filename">api/chat.ts</div>
+        <div class="code-lang" style="color:#22d3ee;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2)">TS</div>
+      </div>
+      <pre class="code"><span class="kw">import</span> { buildSystemPrompt } <span class="kw">from</span> <span class="str">'react-generative-ui'</span>;
+<span class="kw">import</span> { registry } <span class="kw">from</span> <span class="str">'./registry'</span>;
+
+<span class="cm">// buildSystemPrompt() auto-generates the LLM instructions</span>
+<span class="kw">const</span> systemPrompt = <span class="fn">buildSystemPrompt</span>(registry, {
+  <span class="prop">StatCard</span>:  { title: <span class="str">"Label"</span>, value: <span class="str">"42"</span>, subtitle: <span class="str">"optional note"</span> },
+  <span class="prop">ProConTable</span>: { title: <span class="str">"optional"</span>, pros: [<span class="str">"item"</span>], cons: [<span class="str">"item"</span>] },
+  <span class="prop">AlertBox</span>:  { type: <span class="str">"info|warning|success|error"</span>, message: <span class="str">"text"</span> },
+});
+
+<span class="cm">// The generated prompt instructs the LLM to output:</span>
+<span class="cm">// {"componentName": "StatCard", "props": {"title":"...", "value":"..."}}</span>
+
+<span class="cm">// Use with OpenAI:</span>
+<span class="kw">const</span> response = <span class="kw">await</span> openai.chat.completions.<span class="fn">create</span>({
+  messages: [
+    { role: <span class="str">'system'</span>, content: systemPrompt },
+    { role: <span class="str">'user'</span>,   content: userMessage },
+  ],
+  model: <span class="str">'gpt-4o'</span>,
+});</pre>
+    </div>
+  </div>
+
+  <div id="step5" class="tab-panel">
+    <div class="code-box">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ef4444"></div>
+          <div class="code-dot" style="background:#f59e0b"></div>
+          <div class="code-dot" style="background:#10b981"></div>
+        </div>
+        <div class="code-filename">ChatMessage.tsx</div>
+        <div class="code-lang" style="color:#22d3ee;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2)">TSX</div>
+      </div>
+      <pre class="code"><span class="kw">import</span> { GenerativeRenderer, parseBlocks } <span class="kw">from</span> <span class="str">'react-generative-ui'</span>;
+<span class="kw">import</span> { registry } <span class="kw">from</span> <span class="str">'./registry'</span>;
+
+<span class="kw">export function</span> <span class="fn">ChatMessage</span>({ llmOutput }: { llmOutput: <span class="ty">string</span> }) {
+  <span class="cm">// 1. Parse the raw LLM string into UIBlocks</span>
+  <span class="kw">const</span> blocks = <span class="fn">parseBlocks</span>(llmOutput);
+
+  <span class="cm">// 2. Render — that's literally all you do</span>
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;GenerativeRenderer</span>
+      <span class="prop">blocks</span>={blocks}
+      <span class="prop">registry</span>={registry}
+    <span class="jsx">/&gt;</span>
+  );
+}
+
+<span class="cm">// Before this package: you'd write 200+ lines of custom parsing logic</span>
+<span class="cm">// After:  4 lines. Done.</span></pre>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Live Simulator -->
+  <div class="section-label">Live Demo — Try It</div>
+
+  <div class="simulator">
+    <div class="sim-header">
+      <div class="pulse"></div>
+      <div class="sim-title">Simulated LLM → Renderer Pipeline</div>
+      <div class="sim-badge">● LIVE</div>
+    </div>
+    <div class="sim-body">
+      <div class="sim-pane">
+        <div class="sim-pane-label">LLM Raw Output (editable)</div>
+        <div class="presets">
+          <button class="preset-btn active" onclick="loadPreset('ai', this)">AI Chat</button>
+          <button class="preset-btn" onclick="loadPreset('dashboard', this)">Dashboard</button>
+          <button class="preset-btn" onclick="loadPreset('compare', this)">Comparison</button>
+          <button class="preset-btn" onclick="loadPreset('code', this)">Code</button>
+          <button class="preset-btn" onclick="loadPreset('leaderboard', this)">Leaderboard</button>
+        </div>
+        <textarea id="llmInput" class="llm-textarea" oninput="liveRender()"></textarea>
+        <button class="parse-btn" onclick="liveRender()">⚡ Parse & Render</button>
+      </div>
+      <div class="sim-pane">
+        <div class="sim-pane-label">Rendered Output</div>
+        <div class="rendered-area" id="renderedOutput">
+          <div class="r-empty"><div class="r-empty-icon">⚛️</div><div>Components will appear here</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Real World Use Cases -->
+  <div class="section-label">Real-World Use Cases</div>
+  <div class="use-cases">
+    <div class="use-case">
+      <div class="uc-icon">💬</div>
+      <div class="uc-title">AI Chat Interfaces</div>
+      <div class="uc-desc">Instead of plain markdown, AI responses show beautiful stat cards, comparison tables, and call-out boxes automatically.</div>
+      <div class="uc-components">
+        <span class="uc-tag">StatCard</span>
+        <span class="uc-tag">ProConTable</span>
+        <span class="uc-tag">AlertBox</span>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="uc-icon">📊</div>
+      <div class="uc-title">AI-Powered Dashboards</div>
+      <div class="uc-desc">Ask questions in natural language. The AI fills your dashboard with charts, KPI cards, and data tables dynamically.</div>
+      <div class="uc-components">
+        <span class="uc-tag">KPICard</span>
+        <span class="uc-tag">BarChart</span>
+        <span class="uc-tag">DataTable</span>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="uc-icon">🤖</div>
+      <div class="uc-title">AI Coding Assistants</div>
+      <div class="uc-desc">Code suggestions are rendered with syntax highlighting, file tabs, line numbers, and a copy button — not just raw text.</div>
+      <div class="uc-components">
+        <span class="uc-tag">CodeSnippet</span>
+        <span class="uc-tag">DiffView</span>
+        <span class="uc-tag">Terminal</span>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="uc-icon">🏆</div>
+      <div class="uc-title">Research & Analytics Tools</div>
+      <div class="uc-desc">AI explains findings with model leaderboards, comparison grids, and citation cards alongside prose.</div>
+      <div class="uc-components">
+        <span class="uc-tag">ModelLeaderboard</span>
+        <span class="uc-tag">KeyPlayers</span>
+        <span class="uc-tag">Citation</span>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="uc-icon">🎓</div>
+      <div class="uc-title">AI Tutors & Educators</div>
+      <div class="uc-desc">Study sessions include flashcards, quizzes, progress bars, and highlighted key concepts rendered from AI responses.</div>
+      <div class="uc-components">
+        <span class="uc-tag">Flashcard</span>
+        <span class="uc-tag">Quiz</span>
+        <span class="uc-tag">ProgressBar</span>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="uc-icon">🛍️</div>
+      <div class="uc-title">AI Shopping & Recommenders</div>
+      <div class="uc-desc">Product comparisons, pricing tables, review summaries, and "Best pick" highlights — all driven by AI in real time.</div>
+      <div class="uc-components">
+        <span class="uc-tag">ProductCard</span>
+        <span class="uc-tag">PriceTable</span>
+        <span class="uc-tag">ReviewSummary</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Presets ─────────────────────────────────────────────────────────────────
+  const PRESETS = {
+    ai: `Sure! Here's a quick comparison of React vs Vue:
+
+{"componentName":"ProConTable","props":{"title":"React vs Vue","pros":["Huge ecosystem","Backed by Meta","Flexible"],"cons":["Steeper learning curve","Boilerplate heavy"]}}
+
+And some quick stats:
+
+{"componentName":"StatCard","props":{"title":"Weekly Downloads","value":"28M+","subtitle":"React on npm (2025)"}}
+{"componentName":"StatCard","props":{"title":"GitHub Stars","value":"220K+","subtitle":"Most starred UI lib"}}
+
+{"componentName":"AlertBox","props":{"type":"info","message":"Both are great — pick the one your team knows best."}}
+
+Hope that helps!`,
+
+    dashboard: `Your Q2 2025 performance at a glance:
+
+{"componentName":"StatCard","props":{"title":"Revenue","value":"$4.2M","subtitle":"↑ 18% vs Q1"}}
+{"componentName":"StatCard","props":{"title":"Active Users","value":"128K","subtitle":"↑ 32% YoY"}}
+{"componentName":"StatCard","props":{"title":"Churn Rate","value":"2.1%","subtitle":"↓ 0.4% improvement"}}
+{"componentName":"StatCard","props":{"title":"NPS Score","value":"74","subtitle":"Industry avg: 41"}}
+
+{"componentName":"AlertBox","props":{"type":"success","message":"All KPIs are tracking ahead of annual targets. Great work!"}}`,
+
+    compare: `Here's my analysis of Python vs TypeScript for your backend:
+
+{"componentName":"ProConTable","props":{"title":"Python","pros":["Fastest prototyping","AI/ML ecosystem","Simple syntax"],"cons":["Slow runtime speed","GIL limitations","Dynamic typing footguns"]}}
+
+{"componentName":"ProConTable","props":{"title":"TypeScript","pros":["Type safety","Shared code with frontend","Excellent tooling"],"cons":["Build step required","Larger boilerplate","Node.js quirks"]}}
+
+{"componentName":"AlertBox","props":{"type":"warning","message":"For AI-heavy workloads, Python wins. For REST APIs with shared types, TypeScript is the better call."}}`,
+
+    code: `Here's how to set up the package in your project:
+
+{"componentName":"CodeSnippet","props":{"language":"bash","code":"npm install react-generative-ui","title":"Install"}}
+
+Then register your components:
+
+{"componentName":"CodeSnippet","props":{"language":"typescript","code":"import { GenerativeRenderer, parseBlocks } from 'react-generative-ui';\n\nconst blocks = parseBlocks(llmOutput);\n\nreturn <GenerativeRenderer blocks={blocks} registry={registry} />;","title":"Usage"}}
+
+{"componentName":"AlertBox","props":{"type":"success","message":"That's all the code you need. The parser and renderer handle everything else."}}`,
+
+    leaderboard: `Here are the top LLM models on the MMLU benchmark as of mid-2025:
+
+{"componentName":"Leaderboard","props":{"title":"MMLU Benchmark","rows":[{"rank":1,"name":"GPT-4o","score":"88.7%"},{"rank":2,"name":"Claude 3.5 Sonnet","score":"88.3%"},{"rank":3,"name":"Gemini 1.5 Pro","score":"85.9%"},{"rank":4,"name":"Llama 3.1 405B","score":"85.1%"},{"rank":5,"name":"Mistral Large","score":"81.2%"}]}}
+
+{"componentName":"AlertBox","props":{"type":"info","message":"Scores vary by benchmark version and evaluation method. Always check primary sources."}}
+
+{"componentName":"StatCard","props":{"title":"Models Tracked","value":"240+","subtitle":"As of July 2025"}}`
+  };
+
+  // ── Registry (simulated) ─────────────────────────────────────────────────────
+  function renderBlock(block) {
+    const { componentName, props } = block;
+
+    if (componentName === 'Text') {
+      const d = document.createElement('p');
+      d.className = 'r-text';
+      d.textContent = props.content;
+      return d;
+    }
+
+    if (componentName === 'StatCard') {
+      const d = document.createElement('div');
+      d.className = 'r-stat-card';
+      d.innerHTML = `
+        <div class="r-stat-label">${props.title || ''}</div>
+        <div class="r-stat-value">${props.value || ''}</div>
+        ${props.subtitle ? `<div class="r-stat-sub">${props.subtitle}</div>` : ''}
+      `;
+      return d;
+    }
+
+    if (componentName === 'ProConTable') {
+      const pros = (props.pros || []).map(p => `<div class="r-procon-item">✅ ${p}</div>`).join('');
+      const cons = (props.cons || []).map(c => `<div class="r-procon-item">❌ ${c}</div>`).join('');
+      const d = document.createElement('div');
+      d.className = 'r-procon';
+      d.innerHTML = `
+        ${props.title ? `<div class="r-procon-title">${props.title}</div>` : ''}
+        <div class="r-procon-grid">
+          <div><div class="r-procon-col-label" style="color:#34d399">Pros</div>${pros}</div>
+          <div><div class="r-procon-col-label" style="color:#f87171">Cons</div>${cons}</div>
+        </div>
+      `;
+      return d;
+    }
+
+    if (componentName === 'AlertBox') {
+      const colors = { info:'#6366f1', warning:'#f59e0b', success:'#10b981', error:'#ef4444' };
+      const c = colors[props.type] || colors.info;
+      const d = document.createElement('div');
+      d.className = 'r-alert';
+      d.style.borderColor = c;
+      d.innerHTML = `<strong style="color:${c}">${(props.type||'INFO').toUpperCase()}:</strong> ${props.message || ''}`;
+      return d;
+    }
+
+    if (componentName === 'CodeSnippet') {
+      const langColors = { bash:'#10b981', typescript:'#22d3ee', javascript:'#f59e0b', python:'#3b82f6' };
+      const c = langColors[(props.language||'').toLowerCase()] || '#94a3b8';
+      const d = document.createElement('div');
+      d.className = 'r-code-block';
+      d.innerHTML = `
+        <div class="r-code-header">
+          ${props.title ? `<span style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${props.title}</span>` : ''}
+          <span class="r-code-lang" style="color:${c}">${(props.language||'code').toUpperCase()}</span>
+        </div>
+        <div class="r-code-body">${escapeHtml(props.code || '')}</div>
+      `;
+      return d;
+    }
+
+    if (componentName === 'Leaderboard') {
+      const rankClasses = ['gold', 'silver', 'bronze'];
+      const rows = (props.rows || []).map((r, i) =>
+        `<div class="r-lb-row">
+          <div class="r-lb-rank ${rankClasses[i] || ''}">${r.rank}</div>
+          <div class="r-lb-name">${r.name}</div>
+          <div class="r-lb-score">${r.score}</div>
+        </div>`
+      ).join('');
+      const d = document.createElement('div');
+      d.innerHTML = `${props.title ? `<div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;padding:10px 14px 0">${props.title}</div>` : ''}
+        <div class="r-leaderboard">${rows}</div>`;
+      return d;
+    }
+
+    // Unknown component
+    const d = document.createElement('div');
+    d.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px dashed #2a2a45;color:#64748b;font-size:12px;font-family:monospace;margin-bottom:8px';
+    d.textContent = `[Unknown component: "${componentName}"]`;
+    return d;
+  }
+
+  // ── Parser (mirrors the real parseBlocks logic) ──────────────────────────────
+  function parseBlocks(rawText) {
+    const blocks = [];
+    const regex = /\{[^{}]*"componentName"\s*:\s*"[^"]+(?:[^{}]|\{[^{}]*\})*\}/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(rawText)) !== null) {
+      const textBefore = rawText.slice(lastIndex, match.index).trim();
+      if (textBefore) blocks.push({ componentName: 'Text', props: { content: textBefore } });
+
+      try {
+        const parsed = JSON.parse(match[0]);
+        if (parsed.componentName) blocks.push({ componentName: parsed.componentName, props: parsed.props || {} });
+      } catch {
+        blocks.push({ componentName: 'Text', props: { content: match[0] } });
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    const textAfter = rawText.slice(lastIndex).trim();
+    if (textAfter) blocks.push({ componentName: 'Text', props: { content: textAfter } });
+
+    return blocks;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  function liveRender() {
+    const raw = document.getElementById('llmInput').value;
+    const out = document.getElementById('renderedOutput');
+    out.innerHTML = '';
+
+    if (!raw.trim()) {
+      out.innerHTML = '<div class="r-empty"><div class="r-empty-icon">⚛️</div><div>Components will appear here</div></div>';
+      return;
+    }
+
+    const blocks = parseBlocks(raw);
+
+    // Group stat cards together
+    const statGroup = [];
+    const finalItems = [];
+
+    for (const block of blocks) {
+      if (block.componentName === 'StatCard') {
+        statGroup.push(block);
+      } else {
+        if (statGroup.length) {
+          finalItems.push({ type: 'statgrid', items: [...statGroup] });
+          statGroup.length = 0;
+        }
+        finalItems.push({ type: 'block', block });
+      }
+    }
+    if (statGroup.length) finalItems.push({ type: 'statgrid', items: [...statGroup] });
+
+    for (const item of finalItems) {
+      if (item.type === 'statgrid') {
+        const grid = document.createElement('div');
+        grid.className = 'r-stat-grid';
+        item.items.forEach(b => grid.appendChild(renderBlock(b)));
+        out.appendChild(grid);
+      } else {
+        out.appendChild(renderBlock(item.block));
+      }
+    }
+  }
+
+  function loadPreset(key, btn) {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('llmInput').value = PRESETS[key];
+    liveRender();
+  }
+
+  function switchTab(e, id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function copyNpm(btn) {
+    navigator.clipboard.writeText('npm install react-generative-ui').then(() => {
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    });
+  }
+
+  // Init
+  document.getElementById('llmInput').value = PRESETS.ai;
+  liveRender();
+</script>
+</body>
+</html>
