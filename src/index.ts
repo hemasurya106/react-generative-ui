@@ -10,7 +10,7 @@
 export { GenerativeRenderer } from './GenerativeRenderer';
 
 // ── Parser Utilities ──────────────────────────────────────────────────────────
-export { parseBlocks, parseBlocksFromJSON } from './parser';
+export { parseBlocks, parseBlocksFromJSON, createStreamingParser } from './parser';
 
 // ── Prompt Helpers ────────────────────────────────────────────────────────────
 export { getSystemPromptInstruction, buildSystemPrompt } from './promptHelpers';
@@ -19,6 +19,7 @@ export { getSystemPromptInstruction, buildSystemPrompt } from './promptHelpers';
 export type {
   UIBlock,
   ComponentRegistry,
+  RegistryEntry,
   GenerativeRendererProps,
   ParseOptions,
 } from './types';
