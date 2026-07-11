@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import type { GenerativeRendererProps, UIBlock } from './types';
+import type { GenerativeRendererProps, UIBlock, ComponentRegistry } from './types';
 
 // ── Default Text Component ────────────────────────────────────────────────────
 // Used for "Text" blocks (plain text between JSON components).
@@ -49,7 +49,7 @@ export const GenerativeRenderer: React.FC<GenerativeRendererProps> = ({
 
   // Merge user's registry with the built-in Text component
   // (user can override "Text" by providing their own in the registry)
-  const fullRegistry: Record<string, React.FC<any>> = {
+  const fullRegistry: ComponentRegistry = {
     Text: DefaultTextComponent,
     ...registry,
   };
@@ -58,10 +58,10 @@ export const GenerativeRenderer: React.FC<GenerativeRendererProps> = ({
     <div className={className}>
       {blocks.map((block: UIBlock, index: number) => {
         const key = block.id ?? `${block.componentName}-${index}`;
-        const Component = fullRegistry[block.componentName];
+        const entry = fullRegistry[block.componentName];
 
         // Unknown component: use fallback or skip
-        if (!Component) {
+        if (!entry) {
           if (shouldDebug) {
             console.warn(
               `[react-generative-ui] Unknown component: "${block.componentName}". ` +
@@ -76,8 +76,48 @@ export const GenerativeRenderer: React.FC<GenerativeRendererProps> = ({
           return null;
         }
 
+        // Resolve component and optional schema
+        let Component: React.FC<any>;
+        let schema: any = undefined;
+
+        if (typeof entry === 'object' && entry !== null && 'component' in entry) {
+          Component = entry.component;
+          schema = entry.schema;
+        } else {
+          Component = entry as React.FC<any>;
+        }
+
+        if (!Component) {
+          if (shouldDebug) {
+            console.warn(`[react-generative-ui] Component rendering function is missing for "${block.componentName}".`);
+          }
+          if (FallbackComponent) {
+            return <FallbackComponent key={key} block={block} />;
+          }
+          return null;
+        }
+
+        // Optional Zod Schema validation
+        let resolvedProps = block.props;
+        if (schema && typeof schema.safeParse === 'function') {
+          const result = schema.safeParse(block.props);
+          if (!result.success) {
+            if (shouldDebug) {
+              console.warn(
+                `[react-generative-ui] Validation failed for component "${block.componentName}":`,
+                result.error
+              );
+            }
+            if (FallbackComponent) {
+              return <FallbackComponent key={key} block={block} />;
+            }
+            return null;
+          }
+          resolvedProps = result.data;
+        }
+
         return (
-          <Component key={key} {...(block.props as Record<string, unknown>)} />
+          <Component key={key} {...resolvedProps} />
         );
       })}
     </div>

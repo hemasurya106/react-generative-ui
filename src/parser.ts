@@ -7,9 +7,65 @@
 
 import type { UIBlock, ParseOptions } from './types';
 
-// ── Regex: finds JSON objects that have a "componentName" key ──────────────
-// Matches { "componentName": "...", "props": { ... } } anywhere in a string
-const COMPONENT_JSON_REGEX = /\{[^{}]*"componentName"\s*:\s*"[^"]+(?:[^{}]|\{[^{}]*\})*\}/g;
+/**
+ * Scans the raw text character by character to find candidate JSON objects
+ * that contain a "componentName" key. It handles nested braces and ignores
+ * braces inside string literals and escaped quotes.
+ *
+ * @param text - The raw input text.
+ * @param maxDepth - The maximum brace nesting depth.
+ * @returns An array of candidate JSON substrings with their start/end positions.
+ */
+function scanJSONObjects(
+  text: string,
+  maxDepth: number = 50
+): Array<{ start: number; end: number; raw: string }> {
+  const results: Array<{ start: number; end: number; raw: string }> = [];
+  let braceDepth = 0;
+  let inString = false;
+  let startIdx = -1;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (char === '\\') {
+        // Skip next character (escaped character like \" or \\)
+        i++;
+      } else if (char === '"') {
+        inString = false;
+      }
+    } else {
+      if (char === '"') {
+        inString = true;
+      } else if (char === '{') {
+        if (braceDepth === 0) {
+          startIdx = i;
+        }
+        braceDepth++;
+        if (braceDepth > maxDepth) {
+          throw new Error(`Brace nesting depth exceeded maximum limit of ${maxDepth}`);
+        }
+      } else if (char === '}') {
+        if (braceDepth > 0) {
+          braceDepth--;
+          if (braceDepth === 0) {
+            if (startIdx !== -1) {
+              const raw = text.slice(startIdx, i + 1);
+              // Cheap pre-check for "componentName"
+              if (/"componentName"\s*:/.test(raw)) {
+                results.push({ start: startIdx, end: i + 1, raw });
+              }
+              startIdx = -1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+}
 
 /**
  * Parses a raw LLM output string into an array of UIBlocks.
@@ -30,21 +86,25 @@ const COMPONENT_JSON_REGEX = /\{[^{}]*"componentName"\s*:\s*"[^"]+(?:[^{}]|\{[^{
  * // ]
  */
 export function parseBlocks(rawText: string, options: ParseOptions = {}): UIBlock[] {
-  const { strict = false } = options;
+  const {
+    strict = true,
+    onParseError,
+    maxInputLength = 1024 * 1024,
+    maxDepth = 50,
+  } = options;
+
+  if (rawText.length > maxInputLength) {
+    throw new Error(`Input length ${rawText.length} exceeds maximum limit of ${maxInputLength}`);
+  }
+
   const blocks: UIBlock[] = [];
   let lastIndex = 0;
 
-  // Reset regex state
-  COMPONENT_JSON_REGEX.lastIndex = 0;
+  const candidates = scanJSONObjects(rawText, maxDepth);
 
-  let match: RegExpExecArray | null;
-
-  while ((match = COMPONENT_JSON_REGEX.exec(rawText)) !== null) {
-    const matchStart = match.index;
-    const matchEnd = match.index + match[0].length;
-
+  for (const candidate of candidates) {
     // Capture any plain text BEFORE this JSON block
-    const textBefore = rawText.slice(lastIndex, matchStart).trim();
+    const textBefore = rawText.slice(lastIndex, candidate.start).trim();
     if (textBefore) {
       blocks.push({
         componentName: 'Text',
@@ -54,27 +114,42 @@ export function parseBlocks(rawText: string, options: ParseOptions = {}): UIBloc
 
     // Parse the JSON block
     try {
-      const parsed = JSON.parse(match[0]) as Partial<UIBlock>;
+      const parsed = JSON.parse(candidate.raw) as Partial<UIBlock>;
 
-      if (parsed.componentName) {
+      if (parsed.componentName && typeof parsed.componentName === 'string') {
         blocks.push({
           componentName: parsed.componentName,
           props: parsed.props ?? {},
           id: parsed.id,
         });
+      } else {
+        const error = new Error('Parsed block is missing "componentName" string key');
+        if (onParseError) {
+          onParseError(candidate.raw, error);
+        }
+        if (!strict) {
+          blocks.push({
+            componentName: 'Text',
+            props: { content: candidate.raw },
+          });
+        }
       }
     } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      if (onParseError) {
+        onParseError(candidate.raw, error);
+      }
       if (!strict) {
-        // In lenient mode, push a raw text block with the unparsed JSON
+        // In lenient mode (strict: false), push a raw text block with the unparsed JSON
         blocks.push({
           componentName: 'Text',
-          props: { content: match[0] },
+          props: { content: candidate.raw },
         });
       }
       // In strict mode, silently skip malformed blocks
     }
 
-    lastIndex = matchEnd;
+    lastIndex = candidate.end;
   }
 
   // Capture any remaining plain text AFTER the last JSON block
@@ -129,4 +204,111 @@ export function parseBlocksFromJSON(jsonString: string): UIBlock[] {
     console.warn('[react-generative-ui] Failed to parse JSON blocks string.');
     return [];
   }
+}
+
+/**
+ * Creates a streaming parser instance that can accept chunks of LLM output
+ * and yield fully parsed blocks as they are completed.
+ *
+ * @param options - Optional parse configuration.
+ * @returns An object with push and flush methods.
+ *
+ * @example
+ * const parser = createStreamingParser({ strict: true });
+ * const blocks1 = parser.push("Some text before the block... ");
+ * const blocks2 = parser.push('{"componentName":"StatCard","props":{"value":42}}');
+ * const blocks3 = parser.flush();
+ */
+export function createStreamingParser(options: ParseOptions = {}): {
+  push: (chunk: string) => UIBlock[];
+  flush: () => UIBlock[];
+} {
+  const {
+    strict = true,
+    onParseError,
+    maxInputLength = 1024 * 1024,
+    maxDepth = 50,
+  } = options;
+
+  let buffer = '';
+
+  const push = (chunk: string): UIBlock[] => {
+    if (buffer.length + chunk.length > maxInputLength) {
+      throw new Error(`Buffered input length exceeds maximum limit of ${maxInputLength}`);
+    }
+    buffer += chunk;
+
+    const newBlocks: UIBlock[] = [];
+    let candidates = scanJSONObjects(buffer, maxDepth);
+
+    while (candidates.length > 0) {
+      const candidate = candidates[0];
+
+      // Grab any plain text before the candidate
+      const textBefore = buffer.slice(0, candidate.start).trim();
+      if (textBefore) {
+        newBlocks.push({
+          componentName: 'Text',
+          props: { content: textBefore },
+        });
+      }
+
+      // Try to parse the candidate
+      try {
+        const parsed = JSON.parse(candidate.raw) as Partial<UIBlock>;
+        if (parsed.componentName && typeof parsed.componentName === 'string') {
+          newBlocks.push({
+            componentName: parsed.componentName,
+            props: parsed.props ?? {},
+            id: parsed.id,
+          });
+        } else {
+          const error = new Error('Parsed block is missing "componentName" string key');
+          if (onParseError) {
+            onParseError(candidate.raw, error);
+          }
+          if (!strict) {
+            newBlocks.push({
+              componentName: 'Text',
+              props: { content: candidate.raw },
+            });
+          }
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        if (onParseError) {
+          onParseError(candidate.raw, error);
+        }
+        if (!strict) {
+          newBlocks.push({
+            componentName: 'Text',
+            props: { content: candidate.raw },
+          });
+        }
+      }
+
+      // Consume this candidate from buffer
+      buffer = buffer.slice(candidate.end);
+
+      // Re-scan remaining buffer
+      candidates = scanJSONObjects(buffer, maxDepth);
+    }
+
+    return newBlocks;
+  };
+
+  const flush = (): UIBlock[] => {
+    const finalBlocks: UIBlock[] = [];
+    const text = buffer.trim();
+    if (text) {
+      finalBlocks.push({
+        componentName: 'Text',
+        props: { content: text },
+      });
+    }
+    buffer = '';
+    return finalBlocks;
+  };
+
+  return { push, flush };
 }

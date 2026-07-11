@@ -1,188 +1,298 @@
 # react-generative-ui
 
-> A plug-and-play React library for rendering AI-generated structured UI components from LLM output.
-
-[![npm version](https://badge.fury.io/js/react-generative-ui.svg)](https://www.npmjs.com/package/react-generative-ui)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+A plug-and-play React library for rendering AI-generated structured UI components from LLM JSON output.
 
 ---
 
-## What is this?
+## What's New in 0.2.0
 
-Traditional AI chat renders LLM output as plain Markdown text. `react-generative-ui` goes further — it lets the LLM decide **which React component to render** and **what data to pass into it**.
-
-You define a registry of your own components. The LLM outputs JSON blocks specifying which component to render. This library handles the parsing and rendering.
-
-```
-LLM Output (text + JSON) → parseBlocks() → UIBlock[] → <GenerativeRenderer /> → Your React Components
-```
-
----
-
-## Installation
-
-```bash
-npm install react-generative-ui
-```
+Version 0.2.0 brings a robust streaming-safe parser, optional Zod prop validation, a set of 17 copy-paste default components distributed via a CLI (`npx react-generative-ui add`), and security hardening. Everything is fully backward compatible — every 0.1.0 example runs unchanged. See [CHANGELOG.md](./CHANGELOG.md) for the complete list.
 
 ---
 
 ## Quick Start
 
-### 1. Define your components
+### Option A — npx init (5 minutes to first demo)
 
-```tsx
-// These are YOUR components — style them however you want
-const ProConTable = ({ pros, cons, title }) => (
-  <div>
-    <h3>{title}</h3>
-    <ul>{pros.map(p => <li>✅ {p}</li>)}</ul>
-    <ul>{cons.map(c => <li>❌ {c}</li>)}</ul>
-  </div>
-);
+```bash
+# 1. Install the package
+npm install react-generative-ui
 
-const StatCard = ({ title, value, subtitle }) => (
-  <div>
-    <p>{title}</p>
-    <h2>{value}</h2>
-    <small>{subtitle}</small>
-  </div>
-);
+# 2. Scaffold a starter registry and copy 4 components in one step
+npx react-generative-ui init
+npx react-generative-ui add stat-card pro-con-table alert-box data-table
 ```
 
-### 2. Create a registry
+### Option B — Existing 0.1.0 usage (still works unchanged)
 
 ```tsx
-import type { ComponentRegistry } from 'react-generative-ui';
+import { parseBlocks, GenerativeRenderer } from 'react-generative-ui';
+import { ProConTable } from './components/ProConTable';
+import { StatCard } from './components/StatCard';
 
-const myRegistry: ComponentRegistry = {
-  ProConTable,
-  StatCard,
+const registry = {
+  ProConTable: ProConTable,
+  StatCard: StatCard,
+};
+
+const raw = `Here's the analysis:
+{"componentName":"ProConTable","props":{"pros":["Fast","Cheap"],"cons":["Limited"]}}`;
+
+const blocks = parseBlocks(raw);
+
+export default function App() {
+  return <GenerativeRenderer blocks={blocks} registry={registry} />;
+}
+```
+
+---
+
+## CLI Reference
+
+```bash
+npx react-generative-ui list
+npx react-generative-ui add <component-name> [<name2> ...] [--dir <path>] [--overwrite] [--yes]
+npx react-generative-ui add --all [--dir <path>] [--overwrite]
+npx react-generative-ui init
+```
+
+### `list`
+
+Prints all available component names with one-line descriptions.
+
+### `add <name>`
+
+Copies the `.tsx` and `.schema.ts` files for one or more components into your project.
+
+- **`--dir <path>`** — Target directory (default: `./src/components/generative-ui/`)
+- **`--overwrite` / `--yes` / `-y`** — Skip prompts and overwrite existing files (use in CI or with coding agents)
+- **`--all`** — Copy every default component
+
+```bash
+npx react-generative-ui add stat-card alert-box --dir ./src/ui/generative
+npx react-generative-ui add --all --yes
+```
+
+The CLI also prints a warning if optional peer dependencies (`zod`, `recharts`) are missing in your `package.json` — it never auto-installs anything.
+
+### `init`
+
+Scaffolds `src/generative-ui-registry.ts` with 4 starter components already wired up with schemas and a `buildSystemPrompt` example.
+
+---
+
+## Default Components
+
+All components ship inside the npm package under `templates/` and are distributed exclusively via the CLI — they are **not** imported by the core bundle. Copy them once, then edit freely.
+
+| Name | Description |
+|------|-------------|
+| `stat-card` | Metric card with value, label, and trend arrow |
+| `data-table` | Tabular data with clean headers |
+| `key-value-list` | Label/value dashboard pairs |
+| `pro-con-table` | Two-column pros/cons comparison |
+| `comparison-table` | Side-by-side feature grid |
+| `bar-chart` | Bar chart *(requires `recharts`)* |
+| `line-chart` | Line chart *(requires `recharts`)* |
+| `pie-chart` | Pie/donut chart *(requires `recharts`)* |
+| `alert-box` | info / success / warning / error message boxes |
+| `badge` | Pill-style status tags |
+| `progress-bar` | Animated completion bar |
+| `timeline` | Vertical chronological event layout |
+| `accordion` | Expandable FAQ/content panels |
+| `code-block` | Syntax-highlighted code (no `dangerouslySetInnerHTML`) |
+| `source-list` | Citation list with URL sanitization |
+| `quick-reply-buttons` | Suggested action buttons |
+| `confirmation-card` | Approve/deny flow card |
+
+### Callback props pattern
+
+`QuickReplyButtons` and `ConfirmationCard` need callbacks that can't come from the LLM. Wrap them in your registry:
+
+```tsx
+import { QuickReplyButtons } from './components/generative-ui/QuickReplyButtons';
+
+const QuickReplyConnected: React.FC<any> = (props) => (
+  <QuickReplyButtons {...props} onSelect={(id) => handleUserSelection(id)} />
+);
+
+const registry = {
+  QuickReplyButtons: QuickReplyConnected,
 };
 ```
 
-### 3. Prompt the LLM correctly
+---
 
-```tsx
-import { buildSystemPrompt } from 'react-generative-ui';
+## Validation (Optional Zod Integration)
 
-const systemPrompt = buildSystemPrompt(myRegistry, {
-  ProConTable: { title: 'optional', pros: ['item'], cons: ['item'] },
-  StatCard: { title: 'Label', value: '42', subtitle: 'optional' },
-});
+Install `zod` as a peer dependency:
 
-// Use systemPrompt in your OpenAI / Groq / Gemini API call
+```bash
+npm install zod
 ```
 
-### 4. Parse the LLM output
+Use the `{ component, schema }` registry form to enable validation:
 
 ```tsx
-import { parseBlocks } from 'react-generative-ui';
+import { z } from 'zod';
+import { GenerativeRenderer, ComponentRegistry } from 'react-generative-ui';
+import { StatCard } from './components/generative-ui/StatCard';
+import { StatCardSchema } from './components/generative-ui/StatCard.schema';
 
-// Raw LLM output (mix of text and JSON blocks):
-const llmOutput = `
-Here is the comparison:
-{"componentName": "ProConTable", "props": {"title": "React vs Vue", "pros": ["Huge ecosystem"], "cons": ["Learning curve"]}}
-Hope that helps!
-`;
+const registry: ComponentRegistry = {
+  // Plain component — no validation (works exactly as in 0.1.0)
+  ProConTable: MyProConTable,
 
-const blocks = parseBlocks(llmOutput);
+  // With Zod schema — props are validated and coerced before rendering
+  StatCard: {
+    component: StatCard,
+    schema: StatCardSchema,
+  },
+};
 ```
 
-### 5. Render it
+**On validation success** — the component receives Zod's parsed/coerced output (defaults applied, types coerced).
+
+**On validation failure** — the renderer gracefully falls back, never throws:
+1. Renders the `fallback` prop if provided.
+2. Logs a `console.warn` with Zod error details if `debug` is on.
+3. Otherwise skips the block silently.
+
+---
+
+## Streaming
+
+Use `createStreamingParser` to process LLM output token by token without waiting for the full response:
 
 ```tsx
-import { GenerativeRenderer } from 'react-generative-ui';
+import { createStreamingParser } from 'react-generative-ui';
 
-function ChatMessage({ llmOutput }) {
-  const blocks = parseBlocks(llmOutput);
+const parser = createStreamingParser({ strict: true });
 
-  return (
-    <GenerativeRenderer
-      blocks={blocks}
-      registry={myRegistry}
-    />
-  );
+// OpenAI / Anthropic SSE streaming loop:
+for await (const chunk of streamResponse) {
+  const text = chunk.choices[0]?.delta?.content ?? '';
+  const newBlocks = parser.push(text);
+  if (newBlocks.length > 0) {
+    setBlocks((prev) => [...prev, ...newBlocks]);
+  }
+}
+
+// When the stream ends, flush any trailing text:
+const trailing = parser.flush();
+if (trailing.length > 0) {
+  setBlocks((prev) => [...prev, ...trailing]);
 }
 ```
+
+The streaming parser buffers incoming chunks, emits fully-closed JSON blocks as soon as their closing `}` is received, and holds partial JSON in the buffer for the next `push()`.
+
+---
+
+## Security
+
+- **URL sanitization**: `SourceList` rejects any `href` that is not `http:` or `https:`, blocking `javascript:`, `data:`, and `vbscript:` schemes before rendering links.
+- **No `dangerouslySetInnerHTML`**: All default components render via React elements, including `CodeBlock` which uses a custom token-based renderer.
+- **Input length guard**: `parseBlocks` and `createStreamingParser` reject inputs larger than `maxInputLength` (default 1 MB).
+- **Depth guard**: The brace-depth scanner limits nesting to `maxDepth` (default 50) to prevent adversarial input from causing performance issues.
+- **Responsible disclosure**: See [SECURITY.md](./SECURITY.md).
 
 ---
 
 ## API Reference
 
-### `<GenerativeRenderer />`
-
-The core rendering component.
-
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `blocks` | `UIBlock[]` | ✅ | Array of parsed UI blocks |
-| `registry` | `ComponentRegistry` | ✅ | Map of component names → React components |
-| `fallback` | `React.FC<{ block: UIBlock }>` | ❌ | Rendered when a component isn't found in the registry |
-| `debug` | `boolean` | ❌ | Logs warnings for unknown components (default: `true` in dev) |
-| `className` | `string` | ❌ | Class name for the wrapper div |
-
----
-
 ### `parseBlocks(rawText, options?)`
 
-Parses a raw LLM string (mixed text + JSON) into a `UIBlock[]` array.
-
-```tsx
-const blocks = parseBlocks(llmOutputString);
+```ts
+parseBlocks(
+  rawText: string,
+  options?: ParseOptions
+): UIBlock[]
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `strict` | `boolean` | `false` | If `true`, silently drops invalid/malformed JSON blocks |
+Scans a raw LLM output string for embedded JSON blocks, returns an array of `UIBlock` objects. Text between blocks becomes `{ componentName: 'Text', props: { content } }`.
 
----
-
-### `parseBlocksFromJSON(jsonString)`
-
-Parses a pure JSON string (no mixed text) directly to `UIBlock[]`. Use this if your LLM returns structured JSON only.
-
-```tsx
-const blocks = parseBlocksFromJSON(`[{"componentName": "StatCard", "props": {...}}]`);
-```
-
----
-
-### `buildSystemPrompt(registry, schemas?, baseInstruction?)`
-
-Generates a complete system prompt with component usage instructions.
-
-```tsx
-const prompt = buildSystemPrompt(myRegistry, {
-  ProConTable: { pros: ['example'], cons: ['example'] },
-});
-```
-
----
-
-### `getSystemPromptInstruction(registry, schemas?)`
-
-Returns only the component instruction block (without a base assistant instruction). 
-Useful if you want to prepend it to your own system prompt.
-
----
-
-## The UIBlock Schema
-
-The LLM should output JSON blocks in this format:
-
-```json
-{
-  "componentName": "ProConTable",
-  "props": {
-    "title": "React vs Vue",
-    "pros": ["Fast", "Flexible"],
-    "cons": ["Boilerplate"]
-  }
+```ts
+interface ParseOptions {
+  strict?: boolean;           // default: true — drop malformed blocks silently
+  onParseError?: (rawBlock: string, error: Error) => void;
+  maxInputLength?: number;    // default: 1_048_576 (1 MB)
+  maxDepth?: number;          // default: 50
 }
 ```
 
-You can mix these inline with regular text and `parseBlocks()` will extract them.
+### `parseBlocksFromJSON(jsonString)`
+
+Parses a JSON array or `{ blocks: [...] }` object directly into `UIBlock[]`. Use when your LLM returns pure structured JSON.
+
+### `createStreamingParser(options?)`
+
+```ts
+createStreamingParser(options?: ParseOptions): {
+  push: (chunk: string) => UIBlock[];
+  flush: () => UIBlock[];
+}
+```
+
+### `buildSystemPrompt(registry, schemas?, baseInstruction?)`
+
+```ts
+buildSystemPrompt(
+  registry: ComponentRegistry,
+  componentSchemas?: Record<string, Record<string, unknown>>,
+  baseInstruction?: string
+): string
+```
+
+Builds a complete system prompt string. Example with schema hints:
+
+```ts
+import { buildSystemPrompt } from 'react-generative-ui';
+
+const prompt = buildSystemPrompt(
+  registry,
+  {
+    StatCard: { title: 'Revenue', value: '$12,400', change: '+8%', trend: 'up' },
+    ProConTable: { title: 'Comparison', pros: ['Fast'], cons: ['Costly'] },
+    AlertBox: { type: 'warning', title: 'Notice', message: 'Action required.' },
+    DataTable: {
+      title: 'Users',
+      headers: ['Name', 'Role'],
+      rows: [{ Name: 'Alice', Role: 'Admin' }],
+    },
+  }
+);
+```
+
+### `getSystemPromptInstruction(registry, schemas?)`
+
+Returns just the instruction section (without the base message), for composing your own system prompt.
+
+### `<GenerativeRenderer />`
+
+```tsx
+<GenerativeRenderer
+  blocks={UIBlock[]}
+  registry={ComponentRegistry}
+  fallback?: React.FC<{ block: UIBlock }>
+  debug?: boolean
+  className?: string
+/>
+```
+
+---
+
+## Types
+
+```ts
+import type {
+  UIBlock,
+  ComponentRegistry,
+  RegistryEntry,
+  GenerativeRendererProps,
+  ParseOptions,
+} from 'react-generative-ui';
+```
 
 ---
 
