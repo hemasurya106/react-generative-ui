@@ -4,6 +4,9 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { GenerativeRenderer } from '../GenerativeRenderer';
 import { z } from 'zod';
+import { StatCard, AlertBox, StatCardSchema, AlertBoxSchema } from '../index';
+
+
 
 afterEach(() => {
   cleanup();
@@ -159,3 +162,48 @@ describe('GenerativeRenderer Zod Validation', () => {
     expect(screen.getByTestId('fallback-unknown').textContent).toBe('Unknown: UnknownComponent');
   });
 });
+
+describe('v0.3.0 Direct Component Exports', () => {
+  // Test direct component imports
+  it('should support importing and rendering StatCard and AlertBox directly', () => {
+    const statBlocks = [
+      { componentName: 'StatCard', props: { title: 'Revenue', value: '$10k', trend: 'up' } },
+      { componentName: 'AlertBox', props: { type: 'info', title: 'Notice', message: 'Hello direct' } },
+    ];
+
+    const registry = {
+      StatCard,
+      AlertBox,
+    };
+
+    const { container } = render(<GenerativeRenderer blocks={statBlocks} registry={registry} />);
+    expect(container.textContent).toContain('Revenue');
+    expect(container.textContent).toContain('$10k');
+    expect(container.textContent).toContain('Notice');
+    expect(container.textContent).toContain('Hello direct');
+  });
+
+  // Test schema direct imports and validation
+  it('should support importing and validating using StatCardSchema and AlertBoxSchema directly', () => {
+    // Valid StatCard props
+    const validStat = StatCardSchema.safeParse({
+      title: 'Metrics',
+      value: 123,
+      trend: 'neutral',
+    });
+    expect(validStat.success).toBe(true);
+
+    // Invalid StatCard props (missing required title and value)
+    const invalidStat = StatCardSchema.safeParse({});
+    expect(invalidStat.success).toBe(false);
+
+    // Valid AlertBox props
+    const validAlert = AlertBoxSchema.safeParse({
+      type: 'success',
+      message: 'Success Message',
+    });
+    expect(validAlert.success).toBe(true);
+  });
+});
+
+

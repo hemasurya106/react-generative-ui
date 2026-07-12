@@ -5,7 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-07-13
+
+### Added
+
+- **Direct component exports (Install path)**: All 17 default components, their Zod schemas, and their prop types are now exported directly from the package root — `import { StatCard, StatCardSchema } from 'react-generative-ui'`. This is a third distribution path alongside the existing Manual (bring your own components, 0.1.0) and Copy (`npx react-generative-ui add`, 0.2.0) paths. Nothing about either prior path changes — this is purely additive.
+- **`withSchema()` helper**: New exported function `withSchema(component, schema)` that pairs a component with its Zod schema in a single call, reducing registry boilerplate on the Install path. Equivalent to writing `{ component, schema }` directly — the existing object-literal form still works unchanged.
+- **`src/componentManifest.ts`**: New internal single source of truth for the 17-component list (name, export name, description, whether it requires `recharts`). Consumed by the CLI's `list` and `add` commands and by the new direct exports. Replaces what were three separately-maintained hardcoded lists (internal refactor — not user-facing on its own, but reduces future drift risk between the CLI and the exports).
+
+### Changed
+
+- `zod` and `recharts` are now marked `external` in the build (`tsup.config.ts`). Previously only `react`/`react-dom` were external. This means importing any component from the package root leaves `zod`/`recharts` imports unresolved for the consumer's own bundler to resolve, rather than attempting to bundle them into the package's compiled output — preserving the "zero required dependencies besides React" property of the core package even though components with schemas and charts are now directly importable.
+- `tsconfig.json`: removed `rootDir: "./src"` and added `templates` to `include`, to support `src/index.ts` importing across into `templates/`. `tsup.config.ts` additionally pins `dts.compilerOptions.rootDir` to `.` to guarantee generated `.d.ts` output continues to land at `dist/index.d.ts` (matching the existing `types` field in `package.json`) rather than an incorrectly nested path.
+
+### Fixed
+
+- `recharts` was missing from `package.json` `peerDependencies` / `peerDependenciesMeta` since 0.2.0, despite three shipped chart templates (`bar-chart`, `line-chart`, `pie-chart`) requiring it at the top of their source files. Now correctly declared as an optional peer dependency (`>=2.10.0`), matching the existing `zod` pattern exactly. Importing a chart component without `recharts` installed now fails with a clear "Could not resolve 'recharts'" error at build time, naming exactly what's missing, rather than an unclear failure.
+
+### Known Limitations
+
+- **Tree-shaking is partial for the Install path.** Importing a single component from the package root (e.g. `import { StatCard } from 'react-generative-ui'`) currently bundles all 17 components' Zod schema *definitions* alongside it, even though each component's rendered output correctly tree-shakes out when unused. In practice this adds roughly a few KB of schema-definition overhead to your bundle regardless of which single component you import — actual component code is unaffected. This is a known gap, not a regression from 0.2.0 (which had no direct exports to tree-shake at all), and is being tracked for a fix in a future patch release. The Copy path (`npx react-generative-ui add`) is entirely unaffected by this, since it only copies the specific files you request into your repo.
+
+---
 
 ## [0.2.0] - 2026-07-12
 

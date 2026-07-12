@@ -10,11 +10,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "templates"],
   "exclude": ["node_modules", "dist", "example"]
 }

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
+import { COMPONENT_MANIFEST } from '../componentManifest';
 
 export async function runAdd(args: string[]) {
   const names: string[] = [];
@@ -23,26 +24,8 @@ export async function runAdd(args: string[]) {
     }
   }
 
-  // Determine which templates to add
-  const availableTemplates = [
-    'stat-card',
-    'data-table',
-    'key-value-list',
-    'pro-con-table',
-    'comparison-table',
-    'bar-chart',
-    'line-chart',
-    'pie-chart',
-    'alert-box',
-    'badge',
-    'progress-bar',
-    'timeline',
-    'accordion',
-    'code-block',
-    'source-list',
-    'quick-reply-buttons',
-    'confirmation-card',
-  ];
+  // Determine which templates to add (sourced from the single manifest)
+  const availableTemplates = COMPONENT_MANIFEST.map((c) => c.name);
 
   const targets = all ? availableTemplates : names;
 
@@ -83,7 +66,9 @@ export async function runAdd(args: string[]) {
   let hasCharts = false;
 
   for (const name of targets) {
-    if (name.includes('chart')) {
+    // Use the manifest's requiresRecharts flag (more correct than name.includes('chart'))
+    const entry = COMPONENT_MANIFEST.find((c) => c.name === name);
+    if (entry?.requiresRecharts) {
       hasCharts = true;
     }
 

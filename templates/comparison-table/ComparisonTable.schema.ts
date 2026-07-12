@@ -5,6 +5,6 @@ export const ComparisonTableSchema = z.object({
   features: z.array(z.string()),
   options: z.array(z.object({
     name: z.string(),
-    values: z.record(z.union([z.string(), z.boolean()])),
+    values: z.record(z.string(), z.union([z.string(), z.boolean()])),
   })),
 });

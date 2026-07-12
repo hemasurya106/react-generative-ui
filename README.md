@@ -4,15 +4,33 @@ A plug-and-play React library for rendering AI-generated structured UI component
 
 ---
 
-## What's New in 0.2.0
+## What's New in 0.3.0
 
-Version 0.2.0 brings a robust streaming-safe parser, optional Zod prop validation, a set of 17 copy-paste default components distributed via a CLI (`npx react-generative-ui add`), and security hardening. Everything is fully backward compatible — every 0.1.0 example runs unchanged. See [CHANGELOG.md](./CHANGELOG.md) for the complete list.
+Version 0.3.0 adds a third way to use the default component library: import components directly from the package (`import { StatCard } from 'react-generative-ui'`), with zero copying and zero extra setup. This sits alongside the existing Copy (`npx react-generative-ui add`) and Manual paths — nothing about either of those changes. See [CHANGELOG.md](./CHANGELOG.md) for the complete list, including one known limitation worth reading before you upgrade.
 
 ---
 
 ## Quick Start
 
-### Option A — npx init (5 minutes to first demo)
+### Option A — Install path (fastest, zero setup)
+
+```bash
+npm install react-generative-ui
+```
+
+```tsx
+import { GenerativeRenderer, ComponentRegistry, withSchema } from 'react-generative-ui';
+import { StatCard, StatCardSchema, AlertBox, AlertBoxSchema } from 'react-generative-ui';
+
+const registry: ComponentRegistry = {
+  StatCard: withSchema(StatCard, StatCardSchema),
+  AlertBox: withSchema(AlertBox, AlertBoxSchema),
+};
+```
+
+Use this when the default styling works for you and you don't need to edit component source.
+
+### Option B — Copy path (`npx init`, 5 minutes to first demo)
 
 ```bash
 # 1. Install the package
@@ -23,7 +41,9 @@ npx react-generative-ui init
 npx react-generative-ui add stat-card pro-con-table alert-box data-table
 ```
 
-### Option B — Existing 0.1.0 usage (still works unchanged)
+Use this when you want to customize colors, spacing, or behavior — the CLI copies the actual component source into your repo, and from that point on it's just your file to edit freely.
+
+### Option C — Manual (existing 0.1.0 usage, still works unchanged)
 
 ```tsx
 import { parseBlocks, GenerativeRenderer } from 'react-generative-ui';
@@ -44,6 +64,20 @@ export default function App() {
   return <GenerativeRenderer blocks={blocks} registry={registry} />;
 }
 ```
+
+Use this when you want full control from the start, or your components don't fit the pattern of anything in the default set.
+
+---
+
+## Which path should I use?
+
+| | Setup | You own the code? | Best for |
+|---|---|---|---|
+| **Install** | `import { StatCard } from 'react-generative-ui'` | No | Fastest start, default styling is fine |
+| **Copy** | `npx react-generative-ui add stat-card` | Yes | Need to customize colors, layout, behavior |
+| **Manual** | Write your own component | Yes, from scratch | Full control, don't want any of ours |
+
+All three can be mixed freely in the same `ComponentRegistry` — nothing stops you from installing `StatCard` directly while writing your own `RevenueChart` from scratch.
 
 ---
 
@@ -83,34 +117,57 @@ Scaffolds `src/generative-ui-registry.ts` with 4 starter components already wire
 
 ## Default Components
 
-All components ship inside the npm package under `templates/` and are distributed exclusively via the CLI — they are **not** imported by the core bundle. Copy them once, then edit freely.
+All 17 components are available through every path described above:
 
-| Name | Description |
-|------|-------------|
-| `stat-card` | Metric card with value, label, and trend arrow |
-| `data-table` | Tabular data with clean headers |
-| `key-value-list` | Label/value dashboard pairs |
-| `pro-con-table` | Two-column pros/cons comparison |
-| `comparison-table` | Side-by-side feature grid |
-| `bar-chart` | Bar chart *(requires `recharts`)* |
-| `line-chart` | Line chart *(requires `recharts`)* |
-| `pie-chart` | Pie/donut chart *(requires `recharts`)* |
-| `alert-box` | info / success / warning / error message boxes |
-| `badge` | Pill-style status tags |
-| `progress-bar` | Animated completion bar |
-| `timeline` | Vertical chronological event layout |
-| `accordion` | Expandable FAQ/content panels |
-| `code-block` | Syntax-highlighted code (no `dangerouslySetInnerHTML`) |
-| `source-list` | Citation list with URL sanitization |
-| `quick-reply-buttons` | Suggested action buttons |
-| `confirmation-card` | Approve/deny flow card |
+- **Install**: `import { ComponentName, ComponentNameSchema } from 'react-generative-ui'`
+- **Copy**: `npx react-generative-ui add component-name` — copies the same source into your repo
+- Component source lives in `templates/` in the published package either way; the Install path compiles it into the core bundle, the Copy path hands you the raw files
+
+| Name | Export Name | Description |
+|------|-------------|-------------|
+| `stat-card` | `StatCard` | Metric card with value, label, and trend arrow |
+| `data-table` | `DataTable` | Tabular data with clean headers |
+| `key-value-list` | `KeyValueList` | Label/value dashboard pairs |
+| `pro-con-table` | `ProConTable` | Two-column pros/cons comparison |
+| `comparison-table` | `ComparisonTable` | Side-by-side feature grid |
+| `bar-chart` | `BarChart` | Bar chart *(requires `recharts`)* |
+| `line-chart` | `LineChart` | Line chart *(requires `recharts`)* |
+| `pie-chart` | `PieChart` | Pie/donut chart *(requires `recharts`)* |
+| `alert-box` | `AlertBox` | info / success / warning / error message boxes |
+| `badge` | `Badge` | Pill-style status tags |
+| `progress-bar` | `ProgressBar` | Animated completion bar |
+| `timeline` | `Timeline` | Vertical chronological event layout |
+| `accordion` | `Accordion` | Expandable FAQ/content panels |
+| `code-block` | `CodeBlock` | Syntax-highlighted code (no `dangerouslySetInnerHTML`) |
+| `source-list` | `SourceList` | Citation list with URL sanitization |
+| `quick-reply-buttons` | `QuickReplyButtons` | Suggested action buttons |
+| `confirmation-card` | `ConfirmationCard` | Approve/deny flow card |
+
+Chart components (`BarChart`, `LineChart`, `PieChart`) require `npm install recharts` regardless of which path you use. If you import one without installing `recharts`, your bundler will fail at build time with a clear "Could not resolve 'recharts'" error naming exactly what's missing — not a silent runtime crash.
+
+> **Note on bundle size:** as of 0.3.0, importing even a single component from the Install path currently bundles all 17 components' Zod schema definitions alongside it — a tree-shaking limitation being tracked for a future patch. Actual component *rendering* code is unaffected and tree-shakes correctly; this only adds a small amount of schema-definition overhead (a few KB) regardless of which one component you import. See [CHANGELOG.md](./CHANGELOG.md) for details. If bundle size is critical for your use case, the Copy path is unaffected by this, since you only get the files you explicitly request.
+
+### The `withSchema()` helper
+
+When using the Install path, `withSchema()` reduces registry boilerplate:
+
+```tsx
+import { withSchema, StatCard, StatCardSchema } from 'react-generative-ui';
+
+const registry = {
+  StatCard: withSchema(StatCard, StatCardSchema),
+};
+```
+
+This is equivalent to writing `{ StatCard: { component: StatCard, schema: StatCardSchema } }` — purely a convenience, the object-literal form still works identically.
 
 ### Callback props pattern
 
 `QuickReplyButtons` and `ConfirmationCard` need callbacks that can't come from the LLM. Wrap them in your registry:
 
 ```tsx
-import { QuickReplyButtons } from './components/generative-ui/QuickReplyButtons';
+import { QuickReplyButtons } from 'react-generative-ui';
+// or, if copied: import { QuickReplyButtons } from './components/generative-ui/QuickReplyButtons';
 
 const QuickReplyConnected: React.FC<any> = (props) => (
   <QuickReplyButtons {...props} onSelect={(id) => handleUserSelection(id)} />
@@ -131,23 +188,19 @@ Install `zod` as a peer dependency:
 npm install zod
 ```
 
-Use the `{ component, schema }` registry form to enable validation:
+Use the `{ component, schema }` registry form (or `withSchema()`) to enable validation:
 
 ```tsx
 import { z } from 'zod';
-import { GenerativeRenderer, ComponentRegistry } from 'react-generative-ui';
-import { StatCard } from './components/generative-ui/StatCard';
-import { StatCardSchema } from './components/generative-ui/StatCard.schema';
+import { GenerativeRenderer, ComponentRegistry, withSchema } from 'react-generative-ui';
+import { StatCard, StatCardSchema } from 'react-generative-ui';
 
 const registry: ComponentRegistry = {
   // Plain component — no validation (works exactly as in 0.1.0)
   ProConTable: MyProConTable,
 
   // With Zod schema — props are validated and coerced before rendering
-  StatCard: {
-    component: StatCard,
-    schema: StatCardSchema,
-  },
+  StatCard: withSchema(StatCard, StatCardSchema),
 };
 ```
 
@@ -279,6 +332,17 @@ Returns just the instruction section (without the base message), for composing y
   className?: string
 />
 ```
+
+### `withSchema(component, schema)`
+
+```ts
+withSchema<P>(
+  component: React.FC<P>,
+  schema: ZodType<P>
+): RegistryEntry<P>
+```
+
+Convenience helper pairing a component with its schema for use in a `ComponentRegistry`. Equivalent to writing `{ component, schema }` directly.
 
 ---
 
