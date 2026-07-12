@@ -52,10 +52,14 @@
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
+    "recharts": ">=2.10.0",
     "zod": ">=3.22.0"
   },
   "peerDependenciesMeta": {
     "zod": {
+      "optional": true
+    },
+    "recharts": {
       "optional": true
     }
   },
@@ -66,6 +70,7 @@
     "@types/react-dom": "^18.3.0",
     "eslint": "^8.57.0",
     "jsdom": "^24.1.0",
+    "recharts": "^3.9.2",
     "tsup": "^8.1.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0",

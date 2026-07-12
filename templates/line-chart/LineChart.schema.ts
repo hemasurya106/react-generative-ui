@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const LineChartSchema = z.object({
   title: z.string().optional(),
-  data: z.array(z.record(z.any())),
+  data: z.array(z.record(z.string(), z.any())),
   xAxisKey: z.string(),
   series: z.array(z.object({
     key: z.string(),
