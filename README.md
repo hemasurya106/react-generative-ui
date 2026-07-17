@@ -4,9 +4,9 @@ A plug-and-play React library for rendering AI-generated structured UI component
 
 ---
 
-## What's New in 0.3.0
+## What's New in 0.4.0
 
-Version 0.3.0 adds a third way to use the default component library: import components directly from the package (`import { StatCard } from 'react-generative-ui'`), with zero copying and zero extra setup. This sits alongside the existing Copy (`npx react-generative-ui add`) and Manual paths — nothing about either of those changes. See [CHANGELOG.md](./CHANGELOG.md) for the complete list, including one known limitation worth reading before you upgrade.
+Version 0.4.0 fixes the tree-shaking limitation from 0.3.0. Each of the 17 default components now also has an isolated subpath export (`react-generative-ui/components/<component-name>`) that includes only that component's code and schema — no other components' schemas get pulled in. The original package-root import (`import { StatCard } from 'react-generative-ui'`) still works exactly as before; the subpath form is an opt-in addition for size-sensitive use cases. See [CHANGELOG.md](./CHANGELOG.md) for the complete list.
 
 ---
 
@@ -30,11 +30,7 @@ const registry: ComponentRegistry = {
 
 Use this when the default styling works for you and you don't need to edit component source.
 
-> **Bundle size tip:** the standard import (`import { StatCard } from
-> 'react-generative-ui'`) is the simplest option and works well for most
-> projects. If you're importing only one or two components and bundle size
-> is critical, use the subpath form instead, which guarantees only that
-> component's code and schema are included:
+> **Bundle size tip:** the standard import above is the simplest option and works well for most projects. If you're importing only one or two components and want the smallest possible bundle, use the subpath form instead — it guarantees only that component's code and schema are included, with no other components' schemas bundled alongside it:
 > ```tsx
 > import { StatCard } from 'react-generative-ui/components/stat-card';
 > import { StatCardSchema } from 'react-generative-ui/components/stat-card';
@@ -84,10 +80,11 @@ Use this when you want full control from the start, or your components don't fit
 | | Setup | You own the code? | Best for |
 |---|---|---|---|
 | **Install** | `import { StatCard } from 'react-generative-ui'` | No | Fastest start, default styling is fine |
+| **Install (subpath)** | `import { StatCard } from 'react-generative-ui/components/stat-card'` | No | Same as above, plus smallest possible bundle |
 | **Copy** | `npx react-generative-ui add stat-card` | Yes | Need to customize colors, layout, behavior |
 | **Manual** | Write your own component | Yes, from scratch | Full control, don't want any of ours |
 
-All three can be mixed freely in the same `ComponentRegistry` — nothing stops you from installing `StatCard` directly while writing your own `RevenueChart` from scratch.
+All of these can be mixed freely in the same `ComponentRegistry` — nothing stops you from installing `StatCard` directly while writing your own `RevenueChart` from scratch.
 
 ---
 
@@ -129,9 +126,10 @@ Scaffolds `src/generative-ui-registry.ts` with 4 starter components already wire
 
 All 17 components are available through every path described above:
 
-- **Install**: `import { ComponentName, ComponentNameSchema } from 'react-generative-ui'`
+- **Install (package root)**: `import { ComponentName, ComponentNameSchema } from 'react-generative-ui'`
+- **Install (subpath, smallest bundle)**: `import { ComponentName, ComponentNameSchema } from 'react-generative-ui/components/component-name'`
 - **Copy**: `npx react-generative-ui add component-name` — copies the same source into your repo
-- Component source lives in `templates/` in the published package either way; the Install path compiles it into the core bundle, the Copy path hands you the raw files
+- Component source lives in `templates/` in the published package either way; the Install paths compile it into the core or per-component bundles, the Copy path hands you the raw files
 
 | Name | Export Name | Description |
 |------|-------------|-------------|
@@ -155,14 +153,15 @@ All 17 components are available through every path described above:
 
 Chart components (`BarChart`, `LineChart`, `PieChart`) require `npm install recharts` regardless of which path you use. If you import one without installing `recharts`, your bundler will fail at build time with a clear "Could not resolve 'recharts'" error naming exactly what's missing — not a silent runtime crash.
 
-> **Bundle size tip:** for size-sensitive Install path usage, import one or two components from `react-generative-ui/components/<component-name>` to include only that component entry. The Copy path remains unaffected too, since you only get the files you explicitly request.
-
 ### The `withSchema()` helper
 
-When using the Install path, `withSchema()` reduces registry boilerplate:
+When using either Install path, `withSchema()` reduces registry boilerplate:
 
 ```tsx
 import { withSchema, StatCard, StatCardSchema } from 'react-generative-ui';
+// or the subpath equivalent:
+// import { StatCard, StatCardSchema } from 'react-generative-ui/components/stat-card';
+// import { withSchema } from 'react-generative-ui';
 
 const registry = {
   StatCard: withSchema(StatCard, StatCardSchema),

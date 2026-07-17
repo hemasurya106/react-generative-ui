@@ -5,13 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 
+## [0.4.0] - 2026-07-17
 
 ### Added
 
-- **Per-component subpath exports**: Components are now built as isolated entries under `react-generative-ui/components/<component-name>`, e.g. `import { StatCard, StatCardSchema } from 'react-generative-ui/components/stat-card'`, so size-sensitive consumers can include only the selected component and its schema while the package-root barrel import remains fully backward compatible.
+- **Per-component subpath exports**: Each of the 17 default components now has its own isolated build entry, importable via `react-generative-ui/components/<component-name>` — e.g. `import { StatCard, StatCardSchema } from 'react-generative-ui/components/stat-card'`. Each subpath bundle contains only that component's code and its own schema, verified to include zero references to any other component's schema.
+- New `exports` map entry in `package.json` for `./components/*`, resolving to the corresponding per-component `dist/components/<name>.js` / `.cjs` / `.d.ts` files.
+- `tsup.config.ts` now generates one build entry per component (derived from `componentManifest.ts`), in addition to the existing `index` and `cli` entries — 17 additional isolated ESM/CJS/`.d.ts` output triplets under `dist/components/`.
+
+### Fixed
+
+- **Tree-shaking limitation from 0.3.0 resolved for size-sensitive consumers.** The 0.3.0 release documented a known issue where importing a single component from the package root (`import { StatCard } from 'react-generative-ui'`) still bundled all 17 components' Zod schema definitions. This is now avoidable by using the new subpath import form (`react-generative-ui/components/stat-card`), which is verified — via direct bundling and inspection, not just build success — to include only the requested component's schema and code. The original package-root import is unchanged and still exhibits the same schema-bundling behavior as 0.3.0; it remains the simpler default for consumers who aren't optimizing for bundle size. See "Known Limitations" under [0.3.0] below for the original description of the issue this resolves.
+
+### Changed
+
+- Nothing about the Manual (0.1.0), Copy (0.2.0 CLI), or original Install (0.3.0 package-root) paths changes behavior in this release. This is purely additive.
 
 ---
+
 ## [0.3.0] - 2026-07-13
 
 ### Added
@@ -31,7 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Limitations
 
-- **Tree-shaking is partial for the Install path.** Importing a single component from the package root (e.g. `import { StatCard } from 'react-generative-ui'`) currently bundles all 17 components' Zod schema *definitions* alongside it, even though each component's rendered output correctly tree-shakes out when unused. In practice this adds roughly a few KB of schema-definition overhead to your bundle regardless of which single component you import — actual component code is unaffected. This is a known gap, not a regression from 0.2.0 (which had no direct exports to tree-shake at all), and is being tracked for a fix in a future patch release. The Copy path (`npx react-generative-ui add`) is entirely unaffected by this, since it only copies the specific files you request into your repo.
+- **Tree-shaking is partial for the Install path.** Importing a single component from the package root (e.g. `import { StatCard } from 'react-generative-ui'`) currently bundles all 17 components' Zod schema *definitions* alongside it, even though each component's rendered output correctly tree-shakes out when unused. In practice this adds roughly a few KB of schema-definition overhead to your bundle regardless of which single component you import — actual component code is unaffected. This is a known gap, not a regression from 0.2.0 (which had no direct exports to tree-shake at all).
+  **Resolved in 0.4.0** via per-component subpath exports — see above.
 
 ---
 
