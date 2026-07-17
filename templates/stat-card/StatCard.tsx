@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { StatCardSchema } from './StatCard.schema';
 
+export { StatCardSchema };
+
 export type StatCardProps = z.infer<typeof StatCardSchema>;
 
 export const StatCard: React.FC<StatCardProps> = ({

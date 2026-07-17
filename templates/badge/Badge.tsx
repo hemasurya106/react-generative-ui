@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { BadgeSchema } from './Badge.schema';
 
+export { BadgeSchema };
+
 export type BadgeProps = z.infer<typeof BadgeSchema>;
 
 const BADGE_CONFIG = {

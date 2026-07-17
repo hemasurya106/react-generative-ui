@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { LineChartSchema } from './LineChart.schema';
 
+export { LineChartSchema };
+
 export type LineChartProps = z.infer<typeof LineChartSchema>;
 
 export const LineChart: React.FC<LineChartProps> = ({

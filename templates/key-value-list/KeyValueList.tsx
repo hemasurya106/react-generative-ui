@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { KeyValueListSchema } from './KeyValueList.schema';
 
+export { KeyValueListSchema };
+
 export type KeyValueListProps = z.infer<typeof KeyValueListSchema>;
 
 export const KeyValueList: React.FC<KeyValueListProps> = ({

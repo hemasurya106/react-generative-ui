@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { ComparisonTableSchema } from './ComparisonTable.schema';
 
+export { ComparisonTableSchema };
+
 export type ComparisonTableProps = z.infer<typeof ComparisonTableSchema>;
 
 export const ComparisonTable: React.FC<ComparisonTableProps> = ({

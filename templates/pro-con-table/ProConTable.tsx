@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { ProConTableSchema } from './ProConTable.schema';
 
+export { ProConTableSchema };
+
 export type ProConTableProps = z.infer<typeof ProConTableSchema>;
 
 export const ProConTable: React.FC<ProConTableProps> = ({

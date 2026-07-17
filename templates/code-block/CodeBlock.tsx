@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { z } from 'zod';
 import { CodeBlockSchema } from './CodeBlock.schema';
 
+export { CodeBlockSchema };
+
 export type CodeBlockProps = z.infer<typeof CodeBlockSchema>;
 
 function tokenizeLine(line: string) {

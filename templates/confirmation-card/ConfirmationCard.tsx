@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { ConfirmationCardSchema } from './ConfirmationCard.schema';
 
+export { ConfirmationCardSchema };
+
 /**
  * Recommended registry connection pattern:
  * Since callbacks cannot be sent by the LLM, they must be supplied at render time.

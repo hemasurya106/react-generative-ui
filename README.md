@@ -30,6 +30,16 @@ const registry: ComponentRegistry = {
 
 Use this when the default styling works for you and you don't need to edit component source.
 
+> **Bundle size tip:** the standard import (`import { StatCard } from
+> 'react-generative-ui'`) is the simplest option and works well for most
+> projects. If you're importing only one or two components and bundle size
+> is critical, use the subpath form instead, which guarantees only that
+> component's code and schema are included:
+> ```tsx
+> import { StatCard } from 'react-generative-ui/components/stat-card';
+> import { StatCardSchema } from 'react-generative-ui/components/stat-card';
+> ```
+
 ### Option B — Copy path (`npx init`, 5 minutes to first demo)
 
 ```bash
@@ -145,7 +155,7 @@ All 17 components are available through every path described above:
 
 Chart components (`BarChart`, `LineChart`, `PieChart`) require `npm install recharts` regardless of which path you use. If you import one without installing `recharts`, your bundler will fail at build time with a clear "Could not resolve 'recharts'" error naming exactly what's missing — not a silent runtime crash.
 
-> **Note on bundle size:** as of 0.3.0, importing even a single component from the Install path currently bundles all 17 components' Zod schema definitions alongside it — a tree-shaking limitation being tracked for a future patch. Actual component *rendering* code is unaffected and tree-shakes correctly; this only adds a small amount of schema-definition overhead (a few KB) regardless of which one component you import. See [CHANGELOG.md](./CHANGELOG.md) for details. If bundle size is critical for your use case, the Copy path is unaffected by this, since you only get the files you explicitly request.
+> **Bundle size tip:** for size-sensitive Install path usage, import one or two components from `react-generative-ui/components/<component-name>` to include only that component entry. The Copy path remains unaffected too, since you only get the files you explicitly request.
 
 ### The `withSchema()` helper
 

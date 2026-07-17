@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { TimelineSchema } from './Timeline.schema';
 
+export { TimelineSchema };
+
 export type TimelineProps = z.infer<typeof TimelineSchema>;
 
 export const Timeline: React.FC<TimelineProps> = ({
