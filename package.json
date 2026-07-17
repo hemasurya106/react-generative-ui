@@ -1,6 +1,6 @@
 {
   "name": "react-generative-ui",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A plug-and-play React library for rendering AI-generated structured UI components from LLM JSON output.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
