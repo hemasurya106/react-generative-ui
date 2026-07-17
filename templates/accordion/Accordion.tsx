@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { z } from 'zod';
 import { AccordionSchema } from './Accordion.schema';
 
+export { AccordionSchema };
+
 export type AccordionProps = z.infer<typeof AccordionSchema>;
 
 export const Accordion: React.FC<AccordionProps> = ({

@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { PieChartSchema } from './PieChart.schema';
 
+export { PieChartSchema };
+
 export type PieChartProps = z.infer<typeof PieChartSchema>;
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];

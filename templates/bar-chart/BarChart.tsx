@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { BarChartSchema } from './BarChart.schema';
 
+export { BarChartSchema };
+
 export type BarChartProps = z.infer<typeof BarChartSchema>;
 
 export const BarChart: React.FC<BarChartProps> = ({

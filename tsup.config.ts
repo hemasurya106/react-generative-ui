@@ -1,9 +1,18 @@
 import { defineConfig } from 'tsup';
+import { COMPONENT_MANIFEST } from './src/componentManifest';
+
+const componentEntries = Object.fromEntries(
+  COMPONENT_MANIFEST.map((component) => [
+    `components/${component.name}`,
+    `templates/${component.name}/${component.exportName}.tsx`,
+  ])
+);
 
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
     cli: 'src/cli/index.ts',
+    ...componentEntries,
   },
   format: ['esm', 'cjs'],
   dts: {
@@ -15,7 +24,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
-  // zod and recharts are optional peer dependencies — never bundle them.
+  // zod and recharts are optional peer dependencies - never bundle them.
   // react/react-dom were already external; zod and recharts are added here
   // so that importing BarChart (recharts) or StatCard (zod schema) from the
   // installed path leaves those imports for the consumer's bundler to resolve.
@@ -26,4 +35,3 @@ export default defineConfig({
     };
   },
 });
-

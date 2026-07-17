@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { ProgressBarSchema } from './ProgressBar.schema';
 
+export { ProgressBarSchema };
+
 export type ProgressBarProps = z.infer<typeof ProgressBarSchema>;
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({

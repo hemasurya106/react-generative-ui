@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { SourceListSchema } from './SourceList.schema';
 
+export { SourceListSchema };
+
 export type SourceListProps = z.infer<typeof SourceListSchema>;
 
 function isValidUrl(url: string): boolean {

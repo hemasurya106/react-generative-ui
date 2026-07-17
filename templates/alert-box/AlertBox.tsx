@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { AlertBoxSchema } from './AlertBox.schema';
 
+export { AlertBoxSchema };
+
 export type AlertBoxProps = z.infer<typeof AlertBoxSchema>;
 
 const ALERTS_CONFIG = {

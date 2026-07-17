@@ -2,6 +2,8 @@ import React from 'react';
 import { z } from 'zod';
 import { DataTableSchema } from './DataTable.schema';
 
+export { DataTableSchema };
+
 export type DataTableProps = z.infer<typeof DataTableSchema>;
 
 export const DataTable: React.FC<DataTableProps> = ({
