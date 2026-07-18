@@ -6,6 +6,9 @@ export { ComparisonTableSchema };
 
 export type ComparisonTableProps = z.infer<typeof ComparisonTableSchema>;
 
+/** Inline option type — mirrors ComparisonTableSchema, avoids implicit-any in map callbacks */
+type Option = { name: string; values: Record<string, string | boolean> };
+
 export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   title,
   features,
@@ -43,7 +46,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <thead>
           <tr style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
             <th style={{ padding: '0.75rem 1.25rem', fontWeight: 600, color: '#374151' }}>Feature</th>
-            {options.map((opt, i) => (
+            {options.map((opt: Option, i: number) => (
               <th key={i} style={{ padding: '0.75rem 1.25rem', fontWeight: 600, color: '#374151', textAlign: 'center' }}>
                 {opt.name}
               </th>
@@ -51,10 +54,10 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {features.map((feature, fIndex) => (
+          {features.map((feature: string, fIndex: number) => (
             <tr key={fIndex} style={{ borderBottom: fIndex === features.length - 1 ? 'none' : '1px solid #e5e7eb' }}>
               <td style={{ padding: '0.75rem 1.25rem', fontWeight: 500, color: '#111827' }}>{feature}</td>
-              {options.map((opt, oIndex) => {
+              {options.map((opt: Option, oIndex: number) => {
                 const val = opt.values[feature] !== undefined ? opt.values[feature] : opt.values[feature.toLowerCase()];
                 return (
                   <td key={oIndex} style={{ padding: '0.75rem 1.25rem', textAlign: 'center', color: '#4b5563' }}>
