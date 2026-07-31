@@ -270,32 +270,32 @@ Understanding how `react-generative-ui` transforms raw string streams into rende
 
 ```mermaid
 flowchart TD
-    A[LLM Text Output Stream] --> B[parseBlocks / createStreamingParser]
+    A["LLM Text Output Stream"] --> B["parseBlocks / createStreamingParser"]
     
     subgraph Parsing Engine
-        B --> C{Brace Scanner & Depth Guard}
-        C -->|Plain Text| D[Text Block: props.content]
-        C -->|Valid JSON with componentName| E[UIBlock Object]
-        C -->|Malformed JSON in strict mode| F[Dropped or Raw Fallback]
+        B --> C{"Brace Scanner & Depth Guard"}
+        C -->|"Plain Text"| D["Text Block: props.content"]
+        C -->|"Valid JSON with componentName"| E["UIBlock Object"]
+        C -->|"Malformed JSON in strict mode"| F["Dropped or Raw Fallback"]
     end
     
-    D --> G[UIBlock[] Array]
+    D --> G["UIBlock Array"]
     E --> G
     
-    G --> H[<GenerativeRenderer blocks={...} registry={...} />]
+    G --> H["GenerativeRenderer Component"]
     
     subgraph Rendering Pipeline
-        H --> I{Lookup componentName in Registry}
-        I -->|Found: Plain FC| J[Render React Component]
-        I -->|Found: withSchema Entry| K{Zod safeParse Validation}
-        K -->|Success| J
-        K -->|Validation Error| L{Fallback Component Provided?}
-        I -->|Not Found| L
-        L -->|Yes| M[Render Custom Fallback Component]
-        L -->|No| N[Silent Skip / Console Warning]
+        H --> I{"Lookup componentName in Registry"}
+        I -->|"Found: Plain FC"| J["Render React Component"]
+        I -->|"Found: withSchema Entry"| K{"Zod safeParse Validation"}
+        K -->|"Success"| J
+        K -->|"Validation Error"| L{"Fallback Component Provided?"}
+        I -->|"Not Found"| L
+        L -->|"Yes"| M["Render Custom Fallback Component"]
+        L -->|"No"| N["Silent Skip / Console Warning"]
     end
     
-    J --> O[Final Interactive DOM]
+    J --> O["Final Interactive DOM"]
     M --> O
 ```
 

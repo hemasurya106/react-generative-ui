@@ -52,15 +52,15 @@ During SSE token streaming, partial JSON payloads arrive in chunks. The streamin
 
 ```mermaid
 flowchart TD
-    A[Incoming Chunk] --> B[Append to Buffer String]
-    B --> C[scanJSONObjects on Buffer]
-    C --> D{Candidate JSON Found?}
-    D -->|Yes| E[Extract Text Before Candidate -> Text Block]
-    E --> F[JSON.parse Candidate -> Component UIBlock]
-    F --> G[Slice Candidate from Buffer]
+    A["Incoming Chunk"] --> B["Append to Buffer String"]
+    B --> C["scanJSONObjects on Buffer"]
+    C --> D{"Candidate JSON Found?"}
+    D -->|"Yes"| E["Extract Text Before Candidate -> Text Block"]
+    E --> F["JSON.parse Candidate -> Component UIBlock"]
+    F --> G["Slice Candidate from Buffer"]
     G --> C
-    D -->|No| H[Retain Remaining Partial String in Buffer]
-    H --> I[Return Newly Completed UIBlock[]]
+    D -->|"No"| H["Retain Remaining Partial String in Buffer"]
+    H --> I["Return Newly Completed UIBlock Array"]
 ```
 
 ### Flush Phase
@@ -70,25 +70,25 @@ When the LLM finishes streaming, `flush()` drains any residual plain text remain
 
 ## 4. Component Resolution & Rendering (`src/GenerativeRenderer.tsx`)
 
-The `<GenerativeRenderer />` component iterates over `UIBlock[]` array and matches `block.componentName` against the `ComponentRegistry`.
+The `<GenerativeRenderer />` component iterates over `UIBlock` array and matches `block.componentName` against the `ComponentRegistry`.
 
 ```mermaid
 flowchart TD
-    A[Iterate UIBlock in blocks array] --> B{Lookup block.componentName in registry}
-    B -->|Found| C{Is Entry wrapped with Schema?}
-    B -->|Not Found| D{Fallback Component Provided?}
+    A["Iterate UIBlock in blocks array"] --> B{"Lookup block.componentName in registry"}
+    B -->|"Found"| C{"Is Entry wrapped with Schema?"}
+    B -->|"Not Found"| D{"Fallback Component Provided?"}
     
-    C -->|No: Plain FC| E[Render <Component {...props} />]
-    C -->|Yes: withSchema| F[Run schema.safeParse(props)]
+    C -->|"No: Plain FC"| E["Render React Component"]
+    C -->|"Yes: withSchema"| F["Run schema.safeParse(props)"]
     
-    F -->|Success| G[Render <Component {...result.data} />]
-    F -->|Failure| H{Fallback Component Provided?}
+    F -->|"Success"| G["Render React Component with Safe Props"]
+    F -->|"Failure"| H{"Fallback Component Provided?"}
     
-    D -->|Yes| I[Render <Fallback block={block} />]
-    D -->|No| J[Log warning in dev & return null]
+    D -->|"Yes"| I["Render Fallback Component"]
+    D -->|"No"| J["Log warning in dev & return null"]
     
-    H -->|Yes| I
-    H -->|No| J
+    H -->|"Yes"| I
+    H -->|"No"| J
 ```
 
 ---
