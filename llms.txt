@@ -1,0 +1,127 @@
+# react-generative-ui — LLM Documentation Index
+
+> Machine-friendly documentation summary for LLM coding agents, code assistants, and automated indexing tools.
+
+## Project Overview
+- **Name**: react-generative-ui
+- **Purpose**: A framework-agnostic, plug-and-play React library for rendering AI/LLM structured UI components from raw mixed text and JSON responses.
+- **Repository**: https://github.com/hemasurya106/react-generative-ui
+- **Package**: react-generative-ui (npm)
+- **License**: MIT
+- **Peer Dependencies**: React >= 18.0.0, react-dom >= 18.0.0, Zod >= 3.22.0 (optional), Recharts >= 2.10.0 (optional for chart components).
+
+---
+
+## Core Architecture & Data Flow
+
+1. **Prompt Generation**: `buildSystemPrompt(registry, componentSchemas)` generates instructions telling the LLM to embed JSON blocks with `{"componentName": "<Name>", "props": {...}}`.
+2. **Parsing Pipeline**:
+   - `parseBlocks(rawText, options)` scans text using a character-by-character brace scanner with nesting depth guards (`maxDepth: 50`) and input length guards (`maxInputLength: 1MB`).
+   - Plain text segments become `{ componentName: "Text", props: { content: "..." } }`.
+   - JSON blocks become `{ componentName: "StatCard", props: { ... } }`.
+3. **Streaming Parser**:
+   - `createStreamingParser(options)` returns `{ push(chunk), flush() }`.
+   - Partial JSON is buffered until complete; completed blocks are yielded immediately.
+4. **Rendering Pipeline**:
+   - `<GenerativeRenderer blocks={blocks} registry={registry} fallback={Fallback} debug={boolean} />` maps `componentName` to React components registered in `registry`.
+   - Optional Zod validation via `withSchema(Component, Schema)` executes `safeParse(props)`. On error, falls back cleanly without crashing.
+
+---
+
+## Public API Reference
+
+```ts
+import {
+  GenerativeRenderer,
+  parseBlocks,
+  parseBlocksFromJSON,
+  createStreamingParser,
+  buildSystemPrompt,
+  getSystemPromptInstruction,
+  withSchema,
+} from 'react-generative-ui';
+```
+
+### 1. `<GenerativeRenderer />`
+```tsx
+<GenerativeRenderer
+  blocks={UIBlock[]}                       // Required: parsed block objects
+  registry={ComponentRegistry}             // Required: name -> FC or { component, schema }
+  fallback?: React.FC<{ block: UIBlock }>  // Optional: fallback component for unknown/invalid blocks
+  debug?: boolean                          // Optional: log warnings (default: true in dev)
+  className?: string                       // Optional: outer div container class
+/>
+```
+
+### 2. `parseBlocks(rawText: string, options?: ParseOptions): UIBlock[]`
+Scans raw text containing embedded JSON blocks.
+
+### 3. `parseBlocksFromJSON(jsonString: string): UIBlock[]`
+Parses pure JSON array strings or `{ blocks: [...] }` objects.
+
+### 4. `createStreamingParser(options?: ParseOptions)`
+Returns `{ push(chunk: string): UIBlock[], flush(): UIBlock[] }`.
+
+### 5. `buildSystemPrompt(registry, schemas?, baseInstruction?): string`
+Generates a full system prompt for the LLM.
+
+### 6. `getSystemPromptInstruction(registry, schemas?): string`
+Generates only the component instruction fragment for the LLM.
+
+### 7. `withSchema(component, schema)`
+Pairs a component with a Zod schema for registration: `{ component, schema }`.
+
+---
+
+## 17 Default Built-in Components
+
+1. **StatCard**: `{ title: string, value: string, change?: string, trend?: "up"|"down"|"neutral", icon?: string }`
+2. **DataTable**: `{ title?: string, headers: string[], rows: Record<string, string>[] }`
+3. **KeyValueList**: `{ title?: string, items: Array<{ label: string, value: string }> }`
+4. **ProConTable**: `{ title?: string, pros: string[], cons: string[] }`
+5. **ComparisonTable**: `{ title?: string, features: string[], options: Array<{ name: string, values: string[] }> }`
+6. **BarChart**: `{ title?: string, data: Array<{ label: string, value: number }>, color?: string }` (Requires `recharts`)
+7. **LineChart**: `{ title?: string, data: Array<{ label: string, value: number }>, color?: string }` (Requires `recharts`)
+8. **PieChart**: `{ title?: string, data: Array<{ label: string, value: number }> }` (Requires `recharts`)
+9. **AlertBox**: `{ title?: string, message: string, type: "info"|"success"|"warning"|"error" }`
+10. **Badge**: `{ label: string, variant?: "default"|"success"|"warning"|"error" }`
+11. **ProgressBar**: `{ label?: string, value: number, max?: number, color?: string }`
+12. **Timeline**: `{ title?: string, events: Array<{ date: string, title: string, description?: string }> }`
+13. **Accordion**: `{ items: Array<{ title: string, content: string }> }`
+14. **CodeBlock**: `{ language?: string, code: string }`
+15. **SourceList**: `{ title?: string, sources: Array<{ label: string, url: string }> }` (Sanitizes URLs)
+16. **QuickReplyButtons**: `{ prompt?: string, options: Array<{ id: string, label: string }> }` (Requires `onSelect` wrapper)
+17. **ConfirmationCard**: `{ title: string, message: string, confirmLabel?: string, denyLabel?: string }` (Requires `onConfirm`/`onDeny` wrapper)
+
+---
+
+## CLI Reference (`npx react-generative-ui`)
+
+- `npx react-generative-ui init`: Scaffolds `src/generative-ui-registry.ts`.
+- `npx react-generative-ui add <name...>`: Copies `.tsx` and `.schema.ts` files into `./src/components/generative-ui/`.
+- `npx react-generative-ui add --all`: Scaffold all 17 default components.
+- Flags: `--dir <path>`, `--overwrite` / `-y` / `--yes`, `--all`.
+
+---
+
+## Subpath Imports (Tree-Shaking)
+
+To minimize bundle size, import components from dedicated subpaths:
+- `react-generative-ui/components/stat-card`
+- `react-generative-ui/components/data-table`
+- `react-generative-ui/components/bar-chart`
+- ...and matching kebab-case names for all 17 components.
+
+---
+
+## Repository Directory Index
+
+- `/README.md` — Complete main documentation
+- `/docs/getting-started.md` — Onboarding tutorial
+- `/docs/architecture.md` — Technical deep dive & Mermaid flowcharts
+- `/docs/components.md` — Full 17 component catalog reference
+- `/docs/streaming.md` — Streaming parser & SSE guide
+- `/docs/security.md` — Security policies, URL sanitization, ReDoS limits
+- `/docs/api.md` — Full TypeScript API reference
+- `/docs/cli.md` — CLI manual & flags
+- `/docs/faq.md` — Frequently asked questions
