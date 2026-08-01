@@ -1,6 +1,6 @@
 {
   "name": "react-generative-ui",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Framework-agnostic React library for rendering dynamic, structured AI UI components from LLM text & JSON streams.",
   "homepage": "https://github.com/hemasurya106/react-generative-ui#readme",
   "bugs": {
