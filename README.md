@@ -10,7 +10,7 @@
 
 ---
 
-## ⚡ Understand in 10 Seconds
+## Understand in 10 Seconds
 
 When building AI chatbots, agents, or assistants, LLMs (OpenAI, Anthropic Claude, Google Gemini, Ollama) return **unstructured text streams**. Standard chat interfaces render this text as plain markdown paragraphs.
 
@@ -39,7 +39,7 @@ When building AI chatbots, agents, or assistants, LLMs (OpenAI, Anthropic Claude
 │                                                                                         │
 │ Here is your monthly revenue report:                                                    │
 │ ┌──────────────────────────┐                                                            │
-│ │ 💰 Revenue    $48.2k 🛈  │  ← Interactive StatCard Component                         │
+│ │ Revenue       $48.2k     │  ← Interactive StatCard Component                         │
 │ └──────────────────────────┘                                                            │
 │ Below is the regional breakdown:                                                        │
 │ ┌──────────────────────────┐                                                            │
@@ -62,30 +62,30 @@ When building AI chatbots, agents, or assistants, LLMs (OpenAI, Anthropic Claude
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-1. [Quick Start](#-quick-start)
-2. [Why react-generative-ui?](#-why-react-generative-ui)
-3. [Integration Paths](#-three-integration-paths)
-4. [Architecture & System Flow](#-architecture--system-flow)
-5. [Core Concepts](#-core-concepts)
-6. [System Prompting (LLM Setup)](#-system-prompting-llm-setup)
-7. [Built-in Component Catalog (17 Components)](#-built-in-component-catalog)
-8. [Streaming Support](#-streaming-support)
-9. [Zod Schema Validation](#-zod-schema-validation)
-10. [CLI Reference](#-cli-reference)
-11. [Bundle Size & Subpath Tree-Shaking](#-bundle-size--subpath-tree-shaking)
-12. [Security Model](#-security-model)
-13. [Comparison Matrix](#-comparison-matrix)
-14. [Full API Reference](#-full-api-reference)
-15. [TypeScript Reference](#-typescript-reference)
-16. [Frequently Asked Questions](#-frequently-asked-questions)
-17. [Documentation Directory](#-documentation-directory)
-18. [License & Version History](#-license--version-history)
+1. [Quick Start](#quick-start)
+2. [Why react-generative-ui?](#why-react-generative-ui)
+3. [Integration Paths](#three-integration-paths)
+4. [Architecture & System Flow](#architecture--system-flow)
+5. [Core Concepts](#core-concepts)
+6. [System Prompting (LLM Setup)](#system-prompting-llm-setup)
+7. [Built-in Component Catalog (17 Components)](#built-in-component-catalog)
+8. [Streaming Support](#streaming-support)
+9. [Zod Schema Validation](#zod-schema-validation)
+10. [CLI Reference](#cli-reference)
+11. [Bundle Size & Subpath Tree-Shaking](#bundle-size--subpath-tree-shaking)
+12. [Security Model](#security-model)
+13. [Comparison Matrix](#comparison-matrix)
+14. [Full API Reference](#full-api-reference)
+15. [TypeScript Reference](#typescript-reference)
+16. [Frequently Asked Questions](#frequently-asked-questions)
+17. [Documentation Directory](#documentation-directory)
+18. [License & Version History](#license--version-history)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Build a working generative UI prototype in under two minutes:
 
@@ -173,7 +173,7 @@ export default function GenerativeChatApp() {
 
 ---
 
-## 🎯 Why react-generative-ui?
+## Why react-generative-ui?
 
 ### The Problem
 
@@ -189,7 +189,7 @@ LLMs excel at structured JSON and natural language prose. However, bridging them
 
 ---
 
-## 🛠️ Three Integration Paths
+## Three Integration Paths
 
 Choose the workflow that fits your team's design and customization requirements:
 
@@ -262,7 +262,7 @@ const registry = {
 
 ---
 
-## 🏗️ Architecture & System Flow
+## Architecture & System Flow
 
 Understanding how `react-generative-ui` transforms raw string streams into rendered component trees:
 
@@ -301,7 +301,7 @@ flowchart TD
 
 ---
 
-## 💡 Core Concepts
+## Core Concepts
 
 ### 1. `UIBlock`
 
@@ -341,7 +341,7 @@ The parsing function scans raw input text for JSON blocks. It includes:
 
 ---
 
-## 🤖 System Prompting (LLM Setup)
+## System Prompting (LLM Setup)
 
 To ensure your LLM generates correctly formatted JSON blocks alongside markdown prose, use `buildSystemPrompt()` or `getSystemPromptInstruction()`.
 
@@ -381,7 +381,7 @@ Rules:
 
 ---
 
-## 🎨 Built-in Component Catalog
+## Built-in Component Catalog
 
 `react-generative-ui` includes **17 production-ready default templates**.
 
@@ -389,7 +389,7 @@ Rules:
 
 | Component | Description | Extra Dependencies | Subpath Import |
 |---|---|---|---|
-| **StatCard** | KPI metric card with trend indicator & emoji icon | None | `react-generative-ui/components/stat-card` |
+| **StatCard** | KPI metric card with trend indicator & icon | None | `react-generative-ui/components/stat-card` |
 | **DataTable** | Structured data table with borders & headers | None | `react-generative-ui/components/data-table` |
 | **KeyValueList** | Metadata label-value pairs | None | `react-generative-ui/components/key-value-list` |
 | **ProConTable** | Two-column pros and cons side-by-side table | None | `react-generative-ui/components/pro-con-table` |
@@ -422,7 +422,7 @@ Rules:
     "value": "128,450",
     "change": "+14.2%",
     "trend": "up",
-    "icon": "👥"
+    "icon": "users"
   }
 }
 ```
@@ -486,7 +486,7 @@ export const registry = {
 
 ---
 
-## 🌊 Streaming Support
+## Streaming Support
 
 When handling token-by-token HTTP stream responses (Server-Sent Events), use `createStreamingParser()` to buffer partial tokens and render completed blocks in real time.
 
@@ -568,7 +568,7 @@ export default function StreamingChat() {
 
 ---
 
-## 🛡️ Zod Schema Validation
+## Zod Schema Validation
 
 Validate LLM props at runtime before rendering to ensure bad types (e.g. string passed instead of number array) don't throw React rendering errors.
 
@@ -612,7 +612,7 @@ LLM sends bad props ──► schema.safeParse(props) ──► success: false
 
 ---
 
-## 💻 CLI Reference
+## CLI Reference
 
 The CLI powers **Path B (Copy)** workflow, copying component source code directly into your repository.
 
@@ -660,7 +660,7 @@ npx react-generative-ui list
 
 ---
 
-## 📦 Bundle Size & Subpath Tree-Shaking
+## Bundle Size & Subpath Tree-Shaking
 
 `react-generative-ui` supports granular subpath imports to keep your production bundle lean.
 
@@ -683,7 +683,7 @@ import { withSchema } from 'react-generative-ui';
 
 ---
 
-## 🔒 Security Model
+## Security Model
 
 Handling un-sanitized content generated by external AI models presents unique security considerations:
 
@@ -696,7 +696,7 @@ Handling un-sanitized content generated by external AI models presents unique se
 
 ---
 
-## ⚖️ Comparison Matrix
+## Comparison Matrix
 
 How `react-generative-ui` compares against alternative architectural choices:
 
@@ -712,7 +712,7 @@ How `react-generative-ui` compares against alternative architectural choices:
 
 ---
 
-## 📖 Full API Reference
+## Full API Reference
 
 ### `parseBlocks(rawText: string, options?: ParseOptions): UIBlock[]`
 Scans `rawText` for JSON blocks containing `"componentName"`. Surrounding text is converted to `Text` blocks.
@@ -737,7 +737,7 @@ The primary React renderer component.
 
 ---
 
-## 🔷 TypeScript Reference
+## TypeScript Reference
 
 ```ts
 import type {
@@ -751,7 +751,7 @@ import type {
 
 ---
 
-## ❓ Frequently Asked Questions
+## Frequently Asked Questions
 
 #### Q: Is `react-generative-ui` locked to OpenAI?
 **No.** It works with any LLM provider (Anthropic Claude, Google Gemini, Ollama, HuggingFace, Groq, or custom local models) as long as the LLM receives the system prompt instruction.
@@ -767,7 +767,7 @@ Only if you use `BarChart`, `LineChart`, or `PieChart`. The other 14 components 
 
 ---
 
-## 📂 Documentation Directory
+## Documentation Directory
 
 For dedicated topic guides, inspect the `/docs` directory:
 
@@ -782,7 +782,7 @@ For dedicated topic guides, inspect the `/docs` directory:
 
 ---
 
-## 📜 License & Version History
+## License & Version History
 
 MIT License © Hema Surya
 
