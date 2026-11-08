@@ -41,7 +41,7 @@ if (componentNames.length === 0) {
 
 for (const name of componentNames) {
   for (const path of Object.values(componentExport)) {
-    const resolvedPath = path.replace('*', name).replace(/^\.\//, '');
+    const resolvedPath = path.replaceAll('*', name).replace(/^\.\//, '');
     if (!existsSync(new URL(`../${resolvedPath}`, import.meta.url))) {
       throw new Error(`Component export does not resolve for ${name}: ${path}`);
     }
