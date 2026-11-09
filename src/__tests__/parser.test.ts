@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { parseBlocks, createStreamingParser } from '../parser';
-import type { ParseOptions } from '../types';
 
 describe('Parser Robustness', () => {
   it('should parse nested JSON props correctly', () => {

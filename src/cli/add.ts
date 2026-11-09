@@ -100,7 +100,9 @@ export async function runAdd(args: string[]) {
     if (fs.existsSync('./package.json')) {
       pkgJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
     }
-  } catch {}
+  } catch {
+    // Treat an unreadable or invalid local package.json as absent and show the usual dependency guidance.
+  }
 
   const hasZod = pkgJson.dependencies?.zod || pkgJson.devDependencies?.zod || pkgJson.peerDependencies?.zod;
   const hasRecharts = pkgJson.dependencies?.recharts || pkgJson.devDependencies?.recharts;
