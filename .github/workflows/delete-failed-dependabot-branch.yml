@@ -1,0 +1,58 @@
+name: Delete failed Dependabot branch
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-cleanup-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  delete-branch:
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const [pullRequest] = context.payload.workflow_run.pull_requests;
+            if (!pullRequest) {
+              core.info('The failed workflow run is not associated with a pull request.');
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number,
+            });
+
+            if (pr.user.login !== 'dependabot[bot]') {
+              core.info('The pull request is not authored by Dependabot.');
+              return;
+            }
+
+            if (pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              core.info('The Dependabot branch is not in this repository.');
+              return;
+            }
+
+            if (pr.head.sha !== context.payload.workflow_run.head_sha) {
+              core.info('A newer commit exists on the pull request; keeping the branch.');
+              return;
+            }
+
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${pr.head.ref}`,
+            });
